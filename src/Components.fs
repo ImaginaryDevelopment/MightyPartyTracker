@@ -36,7 +36,7 @@ type Components =
             router.onUrlChanged updateUrl
             router.children [
                 match currentUrl with
-                | [ ] -> Html.h1 "Index"
+                | [ ] -> Html.h1 "Index1"
                 | [ "hello" ] -> Components.HelloWorld()
                 | [ "counter" ] -> Components.Counter()
                 | otherwise -> Html.h1 "Not found"
