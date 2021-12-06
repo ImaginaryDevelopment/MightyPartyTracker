@@ -1,16 +1,36 @@
 module App.JsHelpers
 open Fable.Import
 
+open BHelpers
+
+
 
 // mate the call so key is DRY
+[<RequiresExplicitTypeArguments>]
 let makeStorageProp<'t>(key:string) serializer deserializer =
     let getLocal deserializer (key:string) : 't option =
         match Browser.WebStorage.localStorage.[key] with
-        | null -> None
-        | x -> Some (deserializer x)
+        | ValueString x ->
+            printfn "Attempting to deserialize '%s' -> '%s'" key x
+            Some (deserializer x)
+        | _ -> None
 
     let setLocal serializer (key:string) (value:'t option) =
         match value with
         | None -> Browser.WebStorage.localStorage.removeItem key
         | Some v -> Browser.WebStorage.localStorage.setItem(key,serializer v)
     (fun () -> getLocal deserializer key), setLocal serializer key
+
+[<RequiresExplicitTypeArguments>]
+let makeStorageFromGeneric<'t> (serializer:ISerializer) (key) =
+    makeStorageProp<'t> key serializer.Serialize serializer.Deserialize
+
+module JsSerialization =
+    open Fable.Core.JS
+    let serialize(x:obj) =
+        JSON.stringify x
+    let deserialize<'t> x =
+        try
+            JSON.parse(x) :?> 't
+        with ex ->
+            failwithf "Failed to deserialize: %s ('%s') from '%s'" typeof<'t>.Name ex.Message x

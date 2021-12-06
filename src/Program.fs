@@ -2,55 +2,48 @@ module Program
 
 open Feliz
 open Elmish
+open App.JsHelpers
 
-let stringify (x:obj) = Fable.Core.JS.JSON.stringify x
-type State = { HeroesOwned: Set<int*string>}
+open App.MightyParty.Schema
+
+type OwnershipDatum = TrackedHero
+
+type ChildState = {
+    OwnershipTrackerData: App.MightyParty.Components.OwnershipTracker.Props * App.MightyParty.Components.OwnershipTracker.State
+}
+type State = {
+    ChildState: ChildState
+}
+type ChildMsg =
+    | OwnershipTracker of App.MightyParty.Components.OwnershipTracker.Msg
 
 type Msg =
-    | OwnedClicked of int * string
+    | ChildMsg of ChildMsg
 
-let init() = { HeroesOwned = Set.empty }, Cmd.none
+let init(serializer) =
+    let props,ots,cmd = App.MightyParty.Components.OwnershipTracker.OwnTracking.init serializer
+    let state = {
+        ChildState = {
+            OwnershipTrackerData = props,ots
+        }
+    }
+    state, cmd |> Cmd.map Msg.ChildMsg
 
 let update (msg: Msg) (state: State) =
     match msg with
-    | OwnedClicked(id,name) ->
-        { state with HeroesOwned = state.HeroesOwned |> Set.add (id,name)}, Cmd.none
+    | ChildMsg(ChildMsg.OwnershipTracker msg) ->
+        let next,cmd = App.MightyParty.Components.OwnershipTracker.OwnTracking.update state.ChildState.OwnershipTrackerData msg
+        { state
+            with ChildState = {
+                    state.ChildState
+                        with OwnershipTrackerData = fst state.ChildState.OwnershipTrackerData, next
+                }
+        }, Cmd.none
 
 let render (state: State) (dispatch: Msg -> unit) =
-    let h = App.MightyParty.Hero.heroes
-    let lis =
-        h
-        |> Array.map(fun hero ->
-            Html.li[
-                prop.onClick (fun _ -> dispatch (OwnedClicked(hero.ID, hero.Name)))
-                prop.children [
-                    // not sure if this a referrer or http/https or some other issue
-                    // Html.img [
-                    //     let img = sprintf "http%s" hero.Image.[5..]
-                    //     prop.src img
-                    // ]
-                    Html.input[
-                        prop.type' "checkbox"
-                    ]
-                    Html.span[
-                        prop.text hero.Name
-                    ]
-                ]
-            ]
-        )
 
+    let lis = App.MightyParty.Components.OwnershipTracker.OwnTracking.view state.ChildState.OwnershipTrackerData (ChildMsg.OwnershipTracker >> Msg.ChildMsg >> dispatch)
     Html.div [
-        // Html.button [
-        //     prop.onClick (fun _ -> dispatch Increment)
-        //     prop.text "Increment"
-        // ]
-
-        // Html.button [
-        //     prop.onClick (fun _ -> dispatch Decrement)
-        //     prop.text "Decrement"
-        // ]
-
-        // Html.h1 state.Count
         Html.div [
             Html.ul [
                yield! lis
@@ -59,7 +52,12 @@ let render (state: State) (dispatch: Msg -> unit) =
     ]
 
 open Elmish.React
-Program.mkProgram init update render
+let s = {
+    new BHelpers.ISerializer with
+        member _.Serialize<'t> (x:'t) : string = JsSerialization.serialize x
+        member _.Deserialize<'t>(x:string) : 't = JsSerialization.deserialize x
+}
+Program.mkProgram (fun () -> init s) update render
 |> Program.withReactBatched "feliz-app"
 |> Program.withConsoleTrace
 |> Elmish.Program.run
