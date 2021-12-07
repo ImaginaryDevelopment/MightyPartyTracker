@@ -82,39 +82,24 @@ export function Msg$reflection() {
 
 export function init(serializer) {
     const patternInput = OwnTracking_init(serializer);
-    const props = patternInput[0];
-    const ots = patternInput[1];
-    const cmd = patternInput[2];
-    const cmd_2 = Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd);
+    const cmd_2 = Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), patternInput[2]);
     const patternInput_1 = init_1();
-    const jstate = patternInput_1[0];
-    const jcmd = patternInput_1[1];
-    const jcmd_1 = Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), jcmd);
-    const cmd_4 = append(cmd_2, jcmd_1);
-    const state = new State(new ChildState([props, ots], jstate), new ChildPage(0));
-    return [state, cmd_4];
+    return [new State(new ChildState([patternInput[0], patternInput[1]], patternInput_1[0]), new ChildPage(0)), append(cmd_2, Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), patternInput_1[1]))];
 }
 
 export function update(msg, state) {
     if (msg.tag === 1) {
-        const x = msg.fields[0];
-        return [new State(state.ChildState, x), Cmd_none()];
+        return [new State(state.ChildState, msg.fields[0]), Cmd_none()];
     }
     else if (msg.fields[0].tag === 1) {
-        const msg_2 = msg.fields[0].fields[0];
-        const patternInput_1 = update_1(msg_2, state.ChildState.JsonJenData);
-        const next_1 = patternInput_1[0];
-        const cmd_2 = patternInput_1[1];
-        return [new State(new ChildState(state.ChildState.OwnershipTrackerData, next_1), state.ChildPage), Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), cmd_2)];
+        const patternInput_1 = update_1(msg.fields[0].fields[0], state.ChildState.JsonJenData);
+        return [new State(new ChildState(state.ChildState.OwnershipTrackerData, patternInput_1[0]), state.ChildPage), Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), patternInput_1[1])];
     }
     else {
-        const msg_1 = msg.fields[0].fields[0];
         let patternInput;
         const tupledArg = state.ChildState.OwnershipTrackerData;
-        patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg_1);
-        const next = patternInput[0];
-        const cmd = patternInput[1];
-        return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], next], state.ChildState.JsonJenData), state.ChildPage), Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd)];
+        patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg.fields[0].fields[0]);
+        return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], patternInput[0]], state.ChildState.JsonJenData), state.ChildPage), Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), patternInput[1])];
     }
 }
 
@@ -144,10 +129,9 @@ export function render(state, dispatch) {
     }), (children_2 = toList(delay(() => {
         let children;
         if (state.ChildPage.tag === 1) {
-            const v = view(state.ChildState.JsonJenData, (arg_3) => {
+            return singleton(view(state.ChildState.JsonJenData, (arg_3) => {
                 dispatch(new Msg(0, new ChildMsg(1, arg_3)));
-            });
-            return singleton(v);
+            }));
         }
         else {
             let lis;
@@ -177,8 +161,8 @@ export const s = {
             return JSON.parse(x_3);
         }
         catch (ex) {
-            const arg20 = ex.message;
-            return toFail(printf("Failed to deserialize: %s (\u0027%s\u0027) from \u0027%s\u0027"))("t")(arg20)(x_3);
+            const arg10 = ex.message;
+            return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x_3);
         }
     },
 };

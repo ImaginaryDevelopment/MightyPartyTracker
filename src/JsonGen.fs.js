@@ -54,12 +54,12 @@ export function Reflection_MappedType$reflection() {
 }
 
 export function Reflection_getType(x) {
-    let s, i, f, tupledArg;
+    let tupledArg;
     if (equals(x, null)) {
         return void 0;
     }
     else {
-        return Array.isArray(x) ? (new Reflection_MappedType(0, x)) : (equals(x, string_type) ? (new Reflection_MappedType(2, x)) : (((typeof x) === "string") ? ((s = x, new Reflection_MappedType(2, s))) : (((typeof x) === "number") ? ((i = x, new Reflection_MappedType(3, i))) : (((typeof x) === "number") ? ((f = x, new Reflection_MappedType(3, f))) : ((tupledArg = [x, toArray(Object.keys(x))], new Reflection_MappedType(1, tupledArg[0], tupledArg[1])))))));
+        return Array.isArray(x) ? (new Reflection_MappedType(0, x)) : (equals(x, string_type) ? (new Reflection_MappedType(2, x)) : (((typeof x) === "string") ? (new Reflection_MappedType(2, x)) : (((typeof x) === "number") ? (new Reflection_MappedType(3, x)) : (((typeof x) === "number") ? (new Reflection_MappedType(3, x)) : ((tupledArg = [x, toArray(Object.keys(x))], new Reflection_MappedType(1, tupledArg[0], tupledArg[1])))))));
     }
 }
 
@@ -69,13 +69,12 @@ export function Reflection_generateFs(x) {
         toConsole(printf("Genning %A"))(x_1);
         switch (x_1.tag) {
             case 1: {
-                const o = x_1.fields[0];
                 const keys = x_1.fields[1];
                 toConsole(printf("Getting keys"));
                 toConsole(printf("Keys are %A"))(keys);
                 const arg10_7 = join("\r\n", map((k) => {
                     let option_4, clo2_2;
-                    const value_1 = Object_getItem(k, o);
+                    const value_1 = Object_getItem(k, x_1.fields[0]);
                     const arg30 = JSON.stringify(value_1);
                     toConsole(printf("Value of %s[%A] = %s"))(k)(value_1)(arg30);
                     const kt = Reflection_getType(value_1);
@@ -91,14 +90,12 @@ export function Reflection_generateFs(x) {
                 return "string";
             }
             default: {
-                const items = x_1.fields[0];
-                const _arg1 = tryHead(items);
+                const _arg1 = tryHead(x_1.fields[0]);
                 if (_arg1 == null) {
                     return "obj[]";
                 }
                 else {
-                    const h = value_18(_arg1);
-                    return defaultArg((option_1 = map_1(gen, Reflection_getType(h)), map_1((clo1_1 = toText(printf("%s[]")), (arg10_1) => clo1_1(arg10_1)), option_1)), "obj[]");
+                    return defaultArg((option_1 = map_1(gen, Reflection_getType(value_18(_arg1))), map_1((clo1_1 = toText(printf("%s[]")), (arg10_1) => clo1_1(arg10_1)), option_1)), "obj[]");
                 }
             }
         }
@@ -111,8 +108,7 @@ export function init() {
 }
 
 export function update(msg, state) {
-    const x = msg.fields[0];
-    return [new State(x), Cmd_none()];
+    return [new State(msg.fields[0]), Cmd_none()];
 }
 
 export function generate(text) {
@@ -123,8 +119,8 @@ export function generate(text) {
                 return JSON.parse(x);
             }
             catch (ex) {
-                const arg20 = ex.message;
-                return toFail(printf("Failed to deserialize: %s (\u0027%s\u0027) from \u0027%s\u0027"))("Object")(arg20)(x);
+                const arg10 = ex.message;
+                return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x);
             }
         })()));
     }
@@ -134,7 +130,7 @@ export function generate(text) {
 }
 
 export function view(state, dispatch) {
-    let _arg1, activePatternResult25784, x, msg, x_1;
+    let _arg1, activePatternResult11123, x;
     return createElement("div", {
         children: Interop_reactApi.Children.toArray([createElement("h1", {
             children: ["Json Jen"],
@@ -148,7 +144,7 @@ export function view(state, dispatch) {
                 onChange: (ev) => {
                     dispatch(new Msg(0, ev.target.value));
                 },
-            }), createElement("div", createObj(singleton((_arg1 = ((activePatternResult25784 = $007CValueString$007C_$007C(state.Text), (activePatternResult25784 != null) ? ((x = activePatternResult25784, generate(x))) : (new FSharpResult$2(0, null)))), (_arg1.tag === 1) ? ((msg = _arg1.fields[0], ["children", msg])) : (equals(_arg1.fields[0], null) ? ["children", null] : ((x_1 = _arg1.fields[0], ["children", defaultArg(map_1((x_2) => Reflection_generateFs(x_2), Reflection_getType(x_1)), "?")])))))))]),
+            }), createElement("div", createObj(singleton((_arg1 = ((activePatternResult11123 = $007CValueString$007C_$007C(state.Text), (activePatternResult11123 != null) ? ((x = activePatternResult11123, generate(x))) : (new FSharpResult$2(0, null)))), (_arg1.tag === 1) ? ["children", _arg1.fields[0]] : (equals(_arg1.fields[0], null) ? ["children", null] : ["children", defaultArg(map_1((x_2) => Reflection_generateFs(x_2), Reflection_getType(_arg1.fields[0])), "?")])))))]),
         })]),
     });
 }
