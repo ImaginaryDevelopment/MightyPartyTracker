@@ -117,13 +117,14 @@ module OwnTracking =
 
         Html.li[
             prop.custom("data-owned", string isOwned)
+            prop.key hero.ID
             prop.children [
                 // not sure if this a referrer or http/https or some other issue
                 // Html.img [
                 //     let img = sprintf "http%s" hero.Image.[5..]
                 //     prop.src img
                 // ]
-                Html.span [
+                yield Html.span [
                     prop.onClick (fun _ -> dispatch (OwnedClicked hero.ID))
                     prop.children[
                         Html.input[
@@ -146,7 +147,7 @@ module OwnTracking =
                             renderSoulbinds sb binds
                         | None -> Seq.empty
 
-                    Html.input [
+                    yield Html.input [
                         prop.title "BindLevel"
                         prop.defaultValue hbi.TrackedHero.BindLevel
                         prop.onChange (fun (x:string) -> dispatch (BindLevelChange(hbi.TrackedHero.ID, int x)))
@@ -156,14 +157,12 @@ module OwnTracking =
                         prop.ariaValueMax 4
                         prop.ariaValueMin 0
                     ]
-                    Html.span [
+                    yield Html.span [
                         prop.text "For Next"
                         prop.children [
                             Html.ul [
                                 prop.style [ style.display.inlineElement]
-                                prop.children[
-                                    yield! sbs
-                                ]
+                                prop.children sbs
                             ]
                         ]
                     ]

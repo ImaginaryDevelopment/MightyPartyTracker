@@ -6,7 +6,7 @@ import { delay, toList } from "./fable_modules/fable-library.3.6.3/Seq.js";
 import { createElement } from "react";
 import { Interop_reactApi } from "./fable_modules/Feliz.1.53.0/Interop.fs.js";
 import { singleton } from "./fable_modules/fable-library.3.6.3/List.js";
-import { JsSerialization_deserialize, JsSerialization_serialize } from "./JsHelpers.fs.js";
+import { printf, toFail } from "./fable_modules/fable-library.3.6.3/String.js";
 import { ProgramModule_mkProgram, ProgramModule_withConsoleTrace, ProgramModule_run } from "./fable_modules/Fable.Elmish.3.1.0/program.fs.js";
 import { Program_withReactBatched } from "./fable_modules/Fable.Elmish.React.3.0.1/react.fs.js";
 
@@ -64,21 +64,12 @@ export function Msg$reflection() {
 
 export function init(serializer) {
     const patternInput = OwnTracking_init(serializer);
-    const props = patternInput[0];
-    const ots = patternInput[1];
-    const cmd = patternInput[2];
-    const state = new State(new ChildState([props, ots]));
-    return [state, Cmd_map((arg0) => (new Msg(0, arg0)), cmd)];
+    return [new State(new ChildState([patternInput[0], patternInput[1]])), Cmd_map((arg0) => (new Msg(0, arg0)), patternInput[2])];
 }
 
 export function update(msg, state) {
-    const msg_1 = msg.fields[0].fields[0];
-    let patternInput;
-    const tupledArg = state.ChildState.OwnershipTrackerData;
-    patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg_1);
-    const next = patternInput[0];
-    const cmd = patternInput[1];
-    return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], next])), Cmd_none()];
+    let tupledArg;
+    return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], ((tupledArg = state.ChildState.OwnershipTrackerData, OwnTracking_update(tupledArg[0], tupledArg[1], msg.fields[0].fields[0])))[0]])), Cmd_none()];
 }
 
 export function render(state, dispatch) {
@@ -100,10 +91,17 @@ export function render(state, dispatch) {
 
 export const s = {
     Serialize(x) {
-        return JsSerialization_serialize(x);
+        return JSON.stringify(x);
     },
-    Deserialize(x_1) {
-        return JsSerialization_deserialize(x_1);
+    Deserialize(x_2) {
+        const x_3 = x_2;
+        try {
+            return JSON.parse(x_3);
+        }
+        catch (ex) {
+            const arg10 = ex.message;
+            return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x_3);
+        }
     },
 };
 

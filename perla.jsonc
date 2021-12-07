@@ -10,6 +10,9 @@
     },
     "liveReload": true
   },
+  "build": {
+    "outDir": "./docs"
+  },
   "packages": {
     "date-fns": "https://cdn.skypack.dev/pin/date-fns@v2.24.0-kvpE7SgA70WI1oN3UrY3/mode=imports/optimized/date-fns.js",
     "react": "https://cdn.skypack.dev/pin/react@v17.0.1-yH0aYV1FOvoIPeKBbHxg/mode=imports/optimized/react.js",

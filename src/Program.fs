@@ -55,7 +55,7 @@ open Elmish.React
 let s = {
     new BHelpers.ISerializer with
         member _.Serialize<'t> (x:'t) : string = JsSerialization.serialize x
-        member _.Deserialize<'t>(x:string) : 't = JsSerialization.deserialize x
+        member _.Deserialize<'t>(x:string) : 't = JsSerialization.deserialize<'t> x
 }
 Program.mkProgram (fun () -> init s) update render
 |> Program.withReactBatched "feliz-app"

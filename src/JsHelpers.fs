@@ -27,10 +27,15 @@ let makeStorageFromGeneric<'t> (serializer:ISerializer) (key) =
 
 module JsSerialization =
     open Fable.Core.JS
-    let serialize(x:obj) =
+    let inline serialize(x:obj) =
         JSON.stringify x
-    let deserialize<'t> x =
+    [<RequiresExplicitTypeArguments>]
+    let inline deserialize<'t>(x) =
         try
             JSON.parse(x) :?> 't
         with ex ->
+        #if DEBUG
             failwithf "Failed to deserialize: %s ('%s') from '%s'" typeof<'t>.Name ex.Message x
+        #else
+            failwithf "Failed to deserialize: '%s' from '%s'" ex.Message x
+        #endif
