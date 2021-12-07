@@ -20,7 +20,7 @@ let makeStorageProp<'t>(key:string) serializer deserializer =
     let getLocal deserializer (key:string) : 't option =
         match Browser.WebStorage.localStorage.[key] with
         | ValueString x ->
-            printfn "Attempting to deserialize '%s' -> '%s'" key x
+            // printfn "Attempting to deserialize '%s' -> '%s'" key x
             Some (deserializer x)
         | _ -> None
 
@@ -37,7 +37,7 @@ let makeStorageFromGeneric<'t> (serializer:ISerializer) (key) =
 module JsSerialization =
     open Fable.Core.JS
     let inline serialize(x:obj) =
-        JSON.stringify x
+        JSON.stringify(x,Unchecked.defaultof<_>,2)
     [<RequiresExplicitTypeArguments>]
     let inline deserialize<'t>(x) =
         try

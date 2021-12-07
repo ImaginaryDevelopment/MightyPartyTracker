@@ -1,7 +1,6 @@
-import { equals } from "./fable_modules/fable-library.3.6.3/Util.js";
+import { partialApply, equals } from "./fable_modules/fable-library.3.6.3/Util.js";
 import { value as value_1, some } from "./fable_modules/fable-library.3.6.3/Option.js";
 import { $007CValueString$007C_$007C } from "./BHelpers.fs.js";
-import { printf, toConsole } from "./fable_modules/fable-library.3.6.3/String.js";
 
 export function Object_getItem(name, x) {
     if (equals(x, null)) {
@@ -13,27 +12,27 @@ export function Object_getItem(name, x) {
 }
 
 export function makeStorageProp(key, serializer, deserializer) {
-    let key_2;
-    return [() => {
-        const key_1 = key;
+    const getLocal = (deserializer_1, key_1) => {
         const matchValue = localStorage[key_1];
-        const activePatternResult11036 = $007CValueString$007C_$007C(matchValue);
-        if (activePatternResult11036 != null) {
-            const x = activePatternResult11036;
-            toConsole(printf("Attempting to deserialize \u0027%s\u0027 -\u003e \u0027%s\u0027"))(key_1)(x);
-            return some(deserializer(x));
+        const activePatternResult28169 = $007CValueString$007C_$007C(matchValue);
+        if (activePatternResult28169 != null) {
+            const x = activePatternResult28169;
+            return some(deserializer_1(x));
         }
         else {
             return void 0;
         }
-    }, (key_2 = key, (value) => {
+    };
+    const setLocal = (serializer_1, key_2, value) => {
         if (value != null) {
-            localStorage.setItem(key_2, serializer(value_1(value)));
+            const v = value_1(value);
+            localStorage.setItem(key_2, serializer_1(v));
         }
         else {
             localStorage.removeItem(key_2);
         }
-    })];
+    };
+    return [() => getLocal(deserializer, key), partialApply(1, setLocal, [serializer, key])];
 }
 
 export function makeStorageFromGeneric(serializer, key) {

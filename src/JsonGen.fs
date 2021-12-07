@@ -21,6 +21,10 @@ module Reflection =
         | Obj of obj * string[]
         | Str of string
         | Num of float
+    let getKeyValue (o:obj) k =
+        let value = App.JsHelpers.Object.getItem k o
+        // printfn "Value of %s[%A] = %s" k value <| JsSerialization.serialize value
+        value
 
     let getType (x:obj) =
         match x with
@@ -45,7 +49,7 @@ module Reflection =
                     |> Obj
             |> Some
 
-    let generateFs(x) =
+    let generateFs(x): string=
         let rec gen (x:MappedType): string=
             printfn "Genning %A" x
             match x with
@@ -63,6 +67,7 @@ module Reflection =
                 printfn "Keys are %A" keys
                 keys
                 |> Seq.map(fun k ->
+                    let kt = getKeyValue o k
                     let value : obj = App.JsHelpers.Object.getItem k o
                     printfn "Value of %s[%A] = %s" k value <| JsSerialization.serialize value
                     let kt = getType value
@@ -78,6 +83,64 @@ module Reflection =
             | Str _ -> "string"
 
         gen x
+    // type TType =
+    //     |O of (string*string) list
+    //     |Other of string
+    type GenResult = {
+        Name: string
+        Types: GenResult list
+        TypeName: string
+    }
+    let generateFs2 : _ -> GenResult =
+        let rec gen name (x:MappedType) : GenResult =
+            match x with
+            | Arr items ->
+                printfn "Arr:%s" name
+                items
+                |> Seq.tryHead
+                |> Option.bind getType
+                |> Option.map(gen name>>fun x -> {x with TypeName=sprintf "%s[]" x.TypeName})
+                |> Option.defaultValue {
+                    Name= name
+                    TypeName="obj[]"
+                    Types=List.empty
+                }
+            | Obj (o,keys) ->
+                printfn "Object %s" name
+                let t =
+                    keys
+                    |> Seq.map(fun k ->
+                        getKeyValue o k
+                        |> Option.bind getType
+                        |> Option.map(gen k)
+                        |> Option.defaultValue {
+                            Name= k
+                            TypeName= "obj"
+                            Types= List.empty
+                        }
+                    )
+                    |> List.ofSeq
+                {
+                    Name=name
+                    TypeName= pascal name
+                    Types = t
+                }
+            |Num _ -> {TypeName = "float";Name=name; Types=List.empty}
+            |Str _ -> {TypeName = "string";Name=name; Types=List.empty}
+        fun x -> gen "Foo" x
+
+    let rec mapResult {Name=name;TypeName=_self;Types=t} =
+        match t with
+        | [] -> ""
+        | _ ->
+            [
+                yield! t |> List.map mapResult
+                yield sprintf "type %s = {" name
+                yield t |> List.map(fun x -> sprintf "\t%s: %s" x.Name x.TypeName) |> String.concat "\r\n"
+                yield "}"
+            ]
+            |> String.concat "\r\n"
+
 
 let init(): State * Cmd<Msg> =
     { Text = null }, Cmd.none
@@ -92,6 +155,21 @@ let generate text =
         deserialize<obj> text
         |> Ok
     with ex -> Error ex.Message
+
+let generateView f oOpt =
+    Html.pre [
+        oOpt
+        |> function
+            | Ok null -> prop.text null
+            | Ok x ->
+                Reflection.getType x
+                |> Option.map f
+                |> Option.defaultValue "?"
+                |> prop.text
+            | Error (msg:string) -> prop.text msg
+    ]
+
+
 let view state dispatch =
     Html.div[
         prop.children [
@@ -106,19 +184,19 @@ let view state dispatch =
                         ]
                         prop.onChange (Msg.Textchange >> dispatch)
                     ]
-                    Html.div [
+                    let oOpt =
                         match state.Text with
                         | ValueString x -> generate x
                         | _ -> Ok null
-                        |> function
-                            | Ok null -> prop.text null
-                            | Ok x ->
-                                Reflection.getType x
-                                |> Option.map Reflection.generateFs
-                                |> Option.defaultValue "?"
-                                |> prop.text
-                            | Error msg -> prop.text msg
-                    ]
+                    generateView (
+                        Reflection.generateFs2
+                        >> fun x ->
+                            serialize x
+                            |> printfn "Generated as %s"
+                            x
+                        >>Reflection.mapResult) oOpt
+                    Html.br []
+                    generateView Reflection.generateFs oOpt
                 ]
             ]
         ]
