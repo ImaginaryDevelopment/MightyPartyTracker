@@ -78,14 +78,15 @@ export function OwnTracking_getHeroBindInfo(hero, owned) {
         }
         else {
             const sbs = matchValue_1;
-            return new OwnTracking_BindInfo(th, [sbs, ofSeq(map((x) => [x, tryPick((_arg1, v) => {
+            const bo = ofSeq(map((x) => [x, tryPick((_arg1, v) => {
                 if ((v.Name === x) && v.Owned) {
                     return v;
                 }
                 else {
                     return void 0;
                 }
-            }, owned)], sbs.Requirements))]);
+            }, owned)], sbs.Requirements));
+            return new OwnTracking_BindInfo(th, [sbs, bo]);
         }
     }
 }
@@ -98,7 +99,8 @@ export function OwnTracking_changeOwned(owned, i) {
             return owned;
         }
         else {
-            return add(i, new TrackedHero(i, true, 1, 0, matchValue[1].Name), owned);
+            const h_1 = matchValue[1];
+            return add(i, new TrackedHero(i, true, 1, 0, h_1.Name), owned);
         }
     }
     else {
@@ -125,7 +127,8 @@ export function OwnTracking_updateHero(owned, i, f) {
     }
     switch (pattern_matching_result) {
         case 0: {
-            return add(i, f([o, h_1]), owned);
+            const updated = f([o, h_1]);
+            return add(i, updated, owned);
         }
         case 1: {
             return owned;
@@ -135,26 +138,35 @@ export function OwnTracking_updateHero(owned, i, f) {
 
 export function OwnTracking_init(serializer) {
     const patternInput = makeOwnedProp(serializer);
+    const setOwned = patternInput[1];
     const getOwned = patternInput[0];
-    return [new Props(getOwned, patternInput[1]), new State(getOwned()), Cmd_none()];
+    const owned = getOwned();
+    const props = new Props(getOwned, setOwned);
+    const state = new State(owned);
+    return [props, state, Cmd_none()];
 }
 
 export function OwnTracking_update(props, state, msg) {
     if (msg.tag === 1) {
-        return [new State(OwnTracking_updateHero(state.HeroesOwned, msg.fields[0], (tupledArg) => {
+        const v = msg.fields[1] | 0;
+        const id = msg.fields[0] | 0;
+        const nextOwned_1 = OwnTracking_updateHero(state.HeroesOwned, id, (tupledArg) => {
             const o = tupledArg[0];
-            return new TrackedHero(o.ID, o.Owned, o.Level, msg.fields[1], o.Name);
-        })), Cmd_none()];
+            const _h = tupledArg[1];
+            return new TrackedHero(o.ID, o.Owned, o.Level, v, o.Name);
+        });
+        return [new State(nextOwned_1), Cmd_none()];
     }
     else {
-        const nextOwned = OwnTracking_changeOwned(state.HeroesOwned, msg.fields[0]);
+        const x = msg.fields[0] | 0;
+        const nextOwned = OwnTracking_changeOwned(state.HeroesOwned, x);
         props.SetOwned(nextOwned);
         return [new State(nextOwned), Cmd_none()];
     }
 }
 
 export function OwnTracking_renderSoulbinds(sb, binds) {
-    return map((tupledArg) => {
+    const sbs = map((tupledArg) => {
         const name = tupledArg[0];
         const btho = tupledArg[1];
         if (btho == null) {
@@ -185,6 +197,7 @@ export function OwnTracking_renderSoulbinds(sb, binds) {
             });
         }
     }, toSeq(binds));
+    return sbs;
 }
 
 export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
@@ -205,9 +218,10 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
                 children: hero.Name,
             })]),
         })), delay(() => {
+            let hbi_1;
             let pattern_matching_result, hbi_2;
             if (hbi != null) {
-                if (hbi.TrackedHero.Owned) {
+                if ((hbi_1 = hbi, hbi_1.TrackedHero.Owned)) {
                     pattern_matching_result = 0;
                     hbi_2 = hbi;
                 }
@@ -222,7 +236,14 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
                 case 0: {
                     let sbs;
                     const matchValue = hbi_2.Soulbind;
-                    sbs = ((matchValue == null) ? empty() : OwnTracking_renderSoulbinds(matchValue[0], matchValue[1]));
+                    if (matchValue == null) {
+                        sbs = empty();
+                    }
+                    else {
+                        const sb = matchValue[0];
+                        const binds = matchValue[1];
+                        sbs = OwnTracking_renderSoulbinds(sb, binds);
+                    }
                     return append(singleton(createElement("input", {
                         title: "BindLevel",
                         defaultValue: hbi_2.TrackedHero.BindLevel,

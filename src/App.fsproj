@@ -10,6 +10,7 @@
     <Compile Include="Components.fs" />
     <Compile Include="mighty_party\Schema.fs" />
     <Compile Include="JsHelpers.fs" />
+    <Compile Include="JsonGen.fs" />
     <Compile Include="mighty_party\Hero.fs" />
     <Compile Include="mighty_party\Components\OwnershipTracker.fs" />
     <Compile Include="Program.fs" />

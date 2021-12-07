@@ -1,35 +1,53 @@
 import { Union, Record } from "./fable_modules/fable-library.3.6.3/Types.js";
 import { OwnTracking_view, OwnTracking_update, OwnTracking_init, Msg$reflection as Msg$reflection_1, State$reflection as State$reflection_1, Props$reflection } from "./mighty_party/Components/OwnershipTracker.fs.js";
 import { union_type, record_type, tuple_type } from "./fable_modules/fable-library.3.6.3/Reflection.js";
+import { view, update as update_1, init as init_1, Msg$reflection as Msg$reflection_2, State$reflection as State$reflection_2 } from "./JsonGen.fs.js";
 import { Cmd_none, Cmd_map } from "./fable_modules/Fable.Elmish.3.1.0/cmd.fs.js";
-import { delay, toList } from "./fable_modules/fable-library.3.6.3/Seq.js";
+import { ofArray, append } from "./fable_modules/fable-library.3.6.3/List.js";
 import { createElement } from "react";
 import { Interop_reactApi } from "./fable_modules/Feliz.1.53.0/Interop.fs.js";
-import { singleton } from "./fable_modules/fable-library.3.6.3/List.js";
+import { singleton, delay, toList } from "./fable_modules/fable-library.3.6.3/Seq.js";
 import { printf, toFail } from "./fable_modules/fable-library.3.6.3/String.js";
 import { ProgramModule_mkProgram, ProgramModule_withConsoleTrace, ProgramModule_run } from "./fable_modules/Fable.Elmish.3.1.0/program.fs.js";
 import { Program_withReactBatched } from "./fable_modules/Fable.Elmish.React.3.0.1/react.fs.js";
 
 export class ChildState extends Record {
-    constructor(OwnershipTrackerData) {
+    constructor(OwnershipTrackerData, JsonJenData) {
         super();
         this.OwnershipTrackerData = OwnershipTrackerData;
+        this.JsonJenData = JsonJenData;
     }
 }
 
 export function ChildState$reflection() {
-    return record_type("Program.ChildState", [], ChildState, () => [["OwnershipTrackerData", tuple_type(Props$reflection(), State$reflection_1())]]);
+    return record_type("Program.ChildState", [], ChildState, () => [["OwnershipTrackerData", tuple_type(Props$reflection(), State$reflection_1())], ["JsonJenData", State$reflection_2()]]);
+}
+
+export class ChildPage extends Union {
+    constructor(tag, ...fields) {
+        super();
+        this.tag = (tag | 0);
+        this.fields = fields;
+    }
+    cases() {
+        return ["OwnTracker", "JsonJen"];
+    }
+}
+
+export function ChildPage$reflection() {
+    return union_type("Program.ChildPage", [], ChildPage, () => [[], []]);
 }
 
 export class State extends Record {
-    constructor(ChildState) {
+    constructor(ChildState, ChildPage) {
         super();
         this.ChildState = ChildState;
+        this.ChildPage = ChildPage;
     }
 }
 
 export function State$reflection() {
-    return record_type("Program.State", [], State, () => [["ChildState", ChildState$reflection()]]);
+    return record_type("Program.State", [], State, () => [["ChildState", ChildState$reflection()], ["ChildPage", ChildPage$reflection()]]);
 }
 
 export class ChildMsg extends Union {
@@ -39,12 +57,12 @@ export class ChildMsg extends Union {
         this.fields = fields;
     }
     cases() {
-        return ["OwnershipTracker"];
+        return ["OwnershipTracker", "JsonJenMsg"];
     }
 }
 
 export function ChildMsg$reflection() {
-    return union_type("Program.ChildMsg", [], ChildMsg, () => [[["Item", Msg$reflection_1()]]]);
+    return union_type("Program.ChildMsg", [], ChildMsg, () => [[["Item", Msg$reflection_1()]], [["Item", Msg$reflection_2()]]]);
 }
 
 export class Msg extends Union {
@@ -54,36 +72,96 @@ export class Msg extends Union {
         this.fields = fields;
     }
     cases() {
-        return ["ChildMsg"];
+        return ["ChildMsg", "PageChange"];
     }
 }
 
 export function Msg$reflection() {
-    return union_type("Program.Msg", [], Msg, () => [[["Item", ChildMsg$reflection()]]]);
+    return union_type("Program.Msg", [], Msg, () => [[["Item", ChildMsg$reflection()]], [["Item", ChildPage$reflection()]]]);
 }
 
 export function init(serializer) {
     const patternInput = OwnTracking_init(serializer);
-    return [new State(new ChildState([patternInput[0], patternInput[1]])), Cmd_map((arg0) => (new Msg(0, arg0)), patternInput[2])];
+    const props = patternInput[0];
+    const ots = patternInput[1];
+    const cmd = patternInput[2];
+    const cmd_2 = Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd);
+    const patternInput_1 = init_1();
+    const jstate = patternInput_1[0];
+    const jcmd = patternInput_1[1];
+    const jcmd_1 = Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), jcmd);
+    const cmd_4 = append(cmd_2, jcmd_1);
+    const state = new State(new ChildState([props, ots], jstate), new ChildPage(0));
+    return [state, cmd_4];
 }
 
 export function update(msg, state) {
-    let tupledArg;
-    return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], ((tupledArg = state.ChildState.OwnershipTrackerData, OwnTracking_update(tupledArg[0], tupledArg[1], msg.fields[0].fields[0])))[0]])), Cmd_none()];
+    if (msg.tag === 1) {
+        const x = msg.fields[0];
+        return [new State(state.ChildState, x), Cmd_none()];
+    }
+    else if (msg.fields[0].tag === 1) {
+        const msg_2 = msg.fields[0].fields[0];
+        const patternInput_1 = update_1(msg_2, state.ChildState.JsonJenData);
+        const next_1 = patternInput_1[0];
+        const cmd_2 = patternInput_1[1];
+        return [new State(new ChildState(state.ChildState.OwnershipTrackerData, next_1), state.ChildPage), Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), cmd_2)];
+    }
+    else {
+        const msg_1 = msg.fields[0].fields[0];
+        let patternInput;
+        const tupledArg = state.ChildState.OwnershipTrackerData;
+        patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg_1);
+        const next = patternInput[0];
+        const cmd = patternInput[1];
+        return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], next], state.ChildState.JsonJenData), state.ChildPage), Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd)];
+    }
 }
 
 export function render(state, dispatch) {
-    let children_2, children;
-    let lis;
-    const tupledArg = state.ChildState.OwnershipTrackerData;
-    lis = OwnTracking_view(tupledArg[0], tupledArg[1], (arg_1) => {
-        dispatch(new Msg(0, new ChildMsg(0, arg_1)));
-    });
-    const children_4 = singleton((children_2 = singleton((children = toList(delay(() => lis)), createElement("ul", {
-        children: Interop_reactApi.Children.toArray(Array.from(children)),
-    }))), createElement("div", {
+    let children_2;
+    const children_4 = ofArray([createElement("nav", {
+        className: "navbar",
+        children: Interop_reactApi.Children.toArray([createElement("div", {
+            className: "navbar-menu",
+            children: Interop_reactApi.Children.toArray([createElement("div", {
+                className: "navbar-start",
+                children: Interop_reactApi.Children.toArray([createElement("a", {
+                    className: "navbar-item",
+                    children: "MightyTracker",
+                    onClick: (_arg1) => {
+                        dispatch(new Msg(1, new ChildPage(0)));
+                    },
+                }), createElement("a", {
+                    className: "navbar-item",
+                    children: "Json-Jen",
+                    onClick: (_arg2) => {
+                        dispatch(new Msg(1, new ChildPage(1)));
+                    },
+                })]),
+            })]),
+        })]),
+    }), (children_2 = toList(delay(() => {
+        let children;
+        if (state.ChildPage.tag === 1) {
+            const v = view(state.ChildState.JsonJenData, (arg_3) => {
+                dispatch(new Msg(0, new ChildMsg(1, arg_3)));
+            });
+            return singleton(v);
+        }
+        else {
+            let lis;
+            const tupledArg = state.ChildState.OwnershipTrackerData;
+            lis = OwnTracking_view(tupledArg[0], tupledArg[1], (arg_1) => {
+                dispatch(new Msg(0, new ChildMsg(0, arg_1)));
+            });
+            return singleton((children = toList(delay(() => lis)), createElement("ul", {
+                children: Interop_reactApi.Children.toArray(Array.from(children)),
+            })));
+        }
+    })), createElement("div", {
         children: Interop_reactApi.Children.toArray(Array.from(children_2)),
-    })));
+    }))]);
     return createElement("div", {
         children: Interop_reactApi.Children.toArray(Array.from(children_4)),
     });
@@ -99,8 +177,8 @@ export const s = {
             return JSON.parse(x_3);
         }
         catch (ex) {
-            const arg10 = ex.message;
-            return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x_3);
+            const arg20 = ex.message;
+            return toFail(printf("Failed to deserialize: %s (\u0027%s\u0027) from \u0027%s\u0027"))("t")(arg20)(x_3);
         }
     },
 };

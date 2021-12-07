@@ -3,7 +3,16 @@ open Fable.Import
 
 open BHelpers
 
+module Object =
+    open Fable.Core.JsInterop
+    open Fable.Core.Util
+    [<Fable.Core.Emit("$0[$1]")>]
+    let private item parent name : obj= jsNative
 
+    let getItem (name:string) (x:obj):obj option =
+        match x with
+        | null -> None
+        | _ -> item x name |> Some
 
 // mate the call so key is DRY
 [<RequiresExplicitTypeArguments>]

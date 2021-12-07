@@ -74,7 +74,7 @@ module OwnTracking =
         }
         props,state,Cmd.none
 
-    let update (props,state) (msg: Msg) =
+    let update (props,state) (msg: Msg) : State * Cmd<Msg> =
         match msg with
         | OwnedClicked(x) ->
             let nextOwned = changeOwned (state.HeroesOwned,x)
