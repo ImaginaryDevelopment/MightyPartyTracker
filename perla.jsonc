@@ -7,7 +7,7 @@
   "devServer": {
     "mountDirectories": {
       "./src": "/src",
-      "./dist/images": "/images"
+      "./docs/images":"/images"
     },
     "liveReload": true
   },

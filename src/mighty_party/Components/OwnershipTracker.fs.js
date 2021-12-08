@@ -82,15 +82,14 @@ export function OwnTracking_getHeroBindInfo(hero, owned) {
         }
         else {
             const sbs = matchValue_1;
-            const bo = ofSeq(map((x) => [x, tryPick((_arg1, v) => {
+            return new OwnTracking_BindInfo(th, [sbs, ofSeq(map((x) => [x, tryPick((_arg1, v) => {
                 if ((v.Name === x) && v.Owned) {
                     return v;
                 }
                 else {
                     return void 0;
                 }
-            }, owned)], sbs.Requirements));
-            return new OwnTracking_BindInfo(th, [sbs, bo]);
+            }, owned)], sbs.Requirements))]);
         }
     }
 }
@@ -103,8 +102,7 @@ export function OwnTracking_changeOwned(owned, i) {
             return owned;
         }
         else {
-            const h_1 = matchValue[1];
-            return add(i, new TrackedHero(i, true, 1, 0, h_1.Name), owned);
+            return add(i, new TrackedHero(i, true, 1, 0, matchValue[1].Name), owned);
         }
     }
     else {
@@ -131,8 +129,7 @@ export function OwnTracking_updateHero(owned, i, f) {
     }
     switch (pattern_matching_result) {
         case 0: {
-            const updated = f([o, h_1]);
-            return add(i, updated, owned);
+            return add(i, f([o, h_1]), owned);
         }
         case 1: {
             return owned;
@@ -142,41 +139,28 @@ export function OwnTracking_updateHero(owned, i, f) {
 
 export function OwnTracking_init(serializer) {
     const patternInput = makeOwnedProp(serializer);
-    const setOwned = patternInput[1];
     const getOwned = patternInput[0];
-    const owned = getOwned();
-    const props = new Props(getOwned, setOwned);
-    const state = new State(owned, empty());
-    return [props, state, Cmd_none()];
+    return [new Props(getOwned, patternInput[1]), new State(getOwned(), empty()), Cmd_none()];
 }
 
 export function OwnTracking_update(props, state, msg) {
     switch (msg.tag) {
         case 1: {
-            const v = msg.fields[1] | 0;
-            const id = msg.fields[0] | 0;
-            const nextOwned_1 = OwnTracking_updateHero(state.HeroesOwned, id, (tupledArg) => {
+            return [new State(OwnTracking_updateHero(state.HeroesOwned, msg.fields[0], (tupledArg) => {
                 const o = tupledArg[0];
-                const _h = tupledArg[1];
-                return new TrackedHero(o.ID, o.Owned, o.Level, v, o.Name);
-            });
-            return [new State(nextOwned_1, state.Filter), Cmd_none()];
+                return new TrackedHero(o.ID, o.Owned, o.Level, msg.fields[1], o.Name);
+            }), state.Filter), Cmd_none()];
         }
         case 2: {
-            const v_1 = msg.fields[1] | 0;
-            const id_1 = msg.fields[0] | 0;
-            const nextOwned_2 = OwnTracking_updateHero(state.HeroesOwned, id_1, (tupledArg_1) => {
+            return [new State(OwnTracking_updateHero(state.HeroesOwned, msg.fields[0], (tupledArg_1) => {
                 const o_1 = tupledArg_1[0];
-                const _h_1 = tupledArg_1[1];
-                return new TrackedHero(o_1.ID, o_1.Owned, v_1, o_1.BindLevel, o_1.Name);
-            });
-            return [new State(nextOwned_2, state.Filter), Cmd_none()];
+                return new TrackedHero(o_1.ID, o_1.Owned, msg.fields[1], o_1.BindLevel, o_1.Name);
+            }), state.Filter), Cmd_none()];
         }
         case 3: {
-            const v_2 = msg.fields[1];
             const k = msg.fields[0];
-            const filterValue = toText(printf("%s-%s"))(k)(v_2);
-            const filter = contains(filterValue, state.Filter, {
+            const filterValue = toText(printf("%s-%s"))(k)(msg.fields[1]);
+            return [new State(state.HeroesOwned, contains(filterValue, state.Filter, {
                 Equals: (x_1, y) => (x_1 === y),
                 GetHashCode: (x_1) => stringHash(x_1),
             }) ? List_except([filterValue], state.Filter, {
@@ -184,9 +168,9 @@ export function OwnTracking_update(props, state, msg) {
                 GetHashCode: (x_2) => stringHash(x_2),
             }) : append(singleton(filterValue), filter_1((_arg1) => {
                 let pattern_matching_result;
-                const activePatternResult11342 = $007CBefore$007C_$007C("-")(_arg1);
-                if (activePatternResult11342 != null) {
-                    if ($007CStartsWith$007C_$007C(k)(activePatternResult11342) != null) {
+                const activePatternResult11332 = $007CBefore$007C_$007C("-")(_arg1);
+                if (activePatternResult11332 != null) {
+                    if ($007CStartsWith$007C_$007C(k)(activePatternResult11332) != null) {
                         pattern_matching_result = 0;
                     }
                     else {
@@ -204,12 +188,10 @@ export function OwnTracking_update(props, state, msg) {
                         return true;
                     }
                 }
-            }, state.Filter));
-            return [new State(state.HeroesOwned, filter), Cmd_none()];
+            }, state.Filter))), Cmd_none()];
         }
         default: {
-            const x = msg.fields[0] | 0;
-            const nextOwned = OwnTracking_changeOwned(state.HeroesOwned, x);
+            const nextOwned = OwnTracking_changeOwned(state.HeroesOwned, msg.fields[0]);
             props.SetOwned(nextOwned);
             return [new State(nextOwned, state.Filter), Cmd_none()];
         }
@@ -217,13 +199,13 @@ export function OwnTracking_update(props, state, msg) {
 }
 
 export function OwnTracking_renderSoulbinds(sb, binds) {
-    const sbs = map((tupledArg) => {
-        let arg20, bth;
+    return map((tupledArg) => {
+        let arg20;
         const name = tupledArg[0];
         const btho = tupledArg[1];
         let pattern_matching_result, bth_1;
         if (btho != null) {
-            if ((bth = btho, bth.Owned)) {
+            if (btho.Owned) {
                 pattern_matching_result = 0;
                 bth_1 = btho;
             }
@@ -237,14 +219,12 @@ export function OwnTracking_renderSoulbinds(sb, binds) {
         switch (pattern_matching_result) {
             case 0: {
                 const patternInput = (sb.ReqLvl <= bth_1.Level) ? ["has-text-success", name] : ["has-text-warning", (arg20 = ((bth_1.Level - sb.ReqLvl) | 0), toText(printf("%s %i"))(name)(arg20))];
-                const text = patternInput[1];
-                const cls = patternInput[0];
                 return createElement("li", {
                     style: {
                         display: "inline",
                     },
-                    children: text,
-                    className: cls,
+                    children: patternInput[1],
+                    className: patternInput[0],
                 });
             }
             case 1: {
@@ -262,7 +242,6 @@ export function OwnTracking_renderSoulbinds(sb, binds) {
             }
         }
     }, toSeq(binds));
-    return sbs;
 }
 
 export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
@@ -272,7 +251,7 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
         ["data-owned"]: toString(isOwned),
         key: hero.ID,
         children: Interop_reactApi.Children.toArray(Array.from(toList(delay(() => append_1(singleton_1(createElement("img", {
-            src: toText(printf("dist/images/%i.png"))(hero.ID),
+            src: toText(printf("images/%i.png"))(hero.ID),
         })), delay(() => append_1(singleton_1(createElement("span", {
             onClick: (_arg1) => {
                 dispatch(new Msg(0, hero.ID));
@@ -285,10 +264,9 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
                 children: hero.Name,
             })]),
         })), delay(() => {
-            let hbi_1;
             let pattern_matching_result, hbi_2;
             if (hbi != null) {
-                if ((hbi_1 = hbi, hbi_1.TrackedHero.Owned)) {
+                if (hbi.TrackedHero.Owned) {
                     pattern_matching_result = 0;
                     hbi_2 = hbi;
                 }
@@ -303,14 +281,7 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
                 case 0: {
                     let sbs;
                     const matchValue = hbi_2.Soulbind;
-                    if (matchValue == null) {
-                        sbs = empty_1();
-                    }
-                    else {
-                        const sb = matchValue[0];
-                        const binds = matchValue[1];
-                        sbs = OwnTracking_renderSoulbinds(sb, binds);
-                    }
+                    sbs = ((matchValue == null) ? empty_1() : OwnTracking_renderSoulbinds(matchValue[0], matchValue[1]));
                     return append_1(singleton_1(createElement("input", {
                         title: "Level",
                         defaultValue: hbi_2.TrackedHero.Level,
@@ -354,13 +325,13 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
 export function OwnTracking_applyFilter(heroes, ownedIds, filters) {
     const $007CFilter$007C_$007C = (_arg1) => {
         let pattern_matching_result, f, v;
-        const activePatternResult11365 = $007CBefore$007C_$007C("-")(_arg1);
-        if (activePatternResult11365 != null) {
-            const activePatternResult11366 = $007CAfter$007C_$007C("-")(_arg1);
-            if (activePatternResult11366 != null) {
+        const activePatternResult11355 = $007CBefore$007C_$007C("-")(_arg1);
+        if (activePatternResult11355 != null) {
+            const activePatternResult11356 = $007CAfter$007C_$007C("-")(_arg1);
+            if (activePatternResult11356 != null) {
                 pattern_matching_result = 0;
-                f = activePatternResult11365;
-                v = activePatternResult11366;
+                f = activePatternResult11355;
+                v = activePatternResult11356;
             }
             else {
                 pattern_matching_result = 1;
@@ -379,13 +350,13 @@ export function OwnTracking_applyFilter(heroes, ownedIds, filters) {
         }
     };
     return fold((heroes_1, _arg2) => {
-        let activePatternResult11372, v_2, activePatternResult11374, v_3;
+        let activePatternResult11362, v_2, activePatternResult11364, v_3;
         let pattern_matching_result_1, a;
-        const activePatternResult11378 = $007CFilter$007C_$007C(_arg2);
-        if (activePatternResult11378 != null) {
-            if (activePatternResult11378[0] === "Alignment") {
+        const activePatternResult11368 = $007CFilter$007C_$007C(_arg2);
+        if (activePatternResult11368 != null) {
+            if (activePatternResult11368[0] === "Alignment") {
                 pattern_matching_result_1 = 0;
-                a = activePatternResult11378[1];
+                a = activePatternResult11368[1];
             }
             else {
                 pattern_matching_result_1 = 1;
@@ -400,11 +371,11 @@ export function OwnTracking_applyFilter(heroes, ownedIds, filters) {
             }
             case 1: {
                 let pattern_matching_result_2, r;
-                const activePatternResult11377 = $007CFilter$007C_$007C(_arg2);
-                if (activePatternResult11377 != null) {
-                    if (activePatternResult11377[0] === "Rarity") {
+                const activePatternResult11367 = $007CFilter$007C_$007C(_arg2);
+                if (activePatternResult11367 != null) {
+                    if (activePatternResult11367[0] === "Rarity") {
                         pattern_matching_result_2 = 0;
-                        r = activePatternResult11377[1];
+                        r = activePatternResult11367[1];
                     }
                     else {
                         pattern_matching_result_2 = 1;
@@ -419,10 +390,10 @@ export function OwnTracking_applyFilter(heroes, ownedIds, filters) {
                     }
                     case 1: {
                         let pattern_matching_result_3;
-                        const activePatternResult11376 = $007CFilter$007C_$007C(_arg2);
-                        if (activePatternResult11376 != null) {
-                            if (activePatternResult11376[0] === "Owned") {
-                                if (activePatternResult11376[1] === "Owned") {
+                        const activePatternResult11366 = $007CFilter$007C_$007C(_arg2);
+                        if (activePatternResult11366 != null) {
+                            if (activePatternResult11366[0] === "Owned") {
+                                if (activePatternResult11366[1] === "Owned") {
                                     pattern_matching_result_3 = 0;
                                 }
                                 else {
@@ -442,17 +413,17 @@ export function OwnTracking_applyFilter(heroes, ownedIds, filters) {
                                 return heroes_1.filter((h_2) => contains_1(h_2.ID, ownedIds_1));
                             }
                             case 1: {
-                                const activePatternResult11375 = $007CFilter$007C_$007C(_arg2);
-                                if (activePatternResult11375 != null) {
-                                    const n = activePatternResult11375[0];
-                                    const v_1 = activePatternResult11375[1];
+                                const activePatternResult11365 = $007CFilter$007C_$007C(_arg2);
+                                if (activePatternResult11365 != null) {
+                                    const n = activePatternResult11365[0];
+                                    const v_1 = activePatternResult11365[1];
                                     toConsoleError(printf("No Filter found for %s - %s"))(n)(v_1);
                                     return heroes_1;
                                 }
                                 else {
                                     const x = _arg2;
-                                    const fName = (activePatternResult11372 = $007CBefore$007C_$007C("-")(x), (activePatternResult11372 != null) ? ((v_2 = activePatternResult11372, v_2)) : (void 0));
-                                    const fValue = (activePatternResult11374 = $007CAfter$007C_$007C("-")(x), (activePatternResult11374 != null) ? ((v_3 = activePatternResult11374, v_3)) : (void 0));
+                                    const fName = (activePatternResult11362 = $007CBefore$007C_$007C("-")(x), (activePatternResult11362 != null) ? ((v_2 = activePatternResult11362, v_2)) : (void 0));
+                                    const fValue = (activePatternResult11364 = $007CAfter$007C_$007C("-")(x), (activePatternResult11364 != null) ? ((v_3 = activePatternResult11364, v_3)) : (void 0));
                                     toConsoleError(printf("Unrecognized filter \u0027%A\u0027 - \u0027%A\u0027 "))(fName)(fValue);
                                     return heroes_1;
                                 }
@@ -470,42 +441,34 @@ export function OwnTracking_renderFilterBar(items, dispatch) {
         className: "navbar",
         children: Interop_reactApi.Children.toArray([createElement("div", {
             className: "navbar-start",
-            children: Interop_reactApi.Children.toArray(Array.from(ofSeq_1(map((tupledArg) => {
-                const text = tupledArg[0];
-                const _img = tupledArg[1];
-                const msg = tupledArg[2];
-                return createElement("div", {
-                    className: "navbar-item",
-                    children: Interop_reactApi.Children.toArray([createElement("button", {
-                        children: text,
-                        onClick: (_arg1) => {
-                            dispatch(msg);
-                        },
-                    })]),
-                });
-            }, items)))),
+            children: Interop_reactApi.Children.toArray(Array.from(ofSeq_1(map((tupledArg) => createElement("div", {
+                className: "navbar-item",
+                children: Interop_reactApi.Children.toArray([createElement("button", {
+                    children: tupledArg[0],
+                    onClick: (_arg1) => {
+                        dispatch(tupledArg[2]);
+                    },
+                })]),
+            }), items)))),
         })]),
     });
 }
 
 export function OwnTracking_view(_arg1, state, dispatch) {
-    let h;
-    const owned = new Lazy(() => {
+    const h = Array.from(map((hero) => OwnTracking_renderHeroView(dispatch, state.HeroesOwned, hero), sortBy((x_2) => [x_2.Rarity !== "Legendary", x_2.Rarity !== "Epic", x_2.Rarity !== "Rare", x_2.Name], OwnTracking_applyFilter(OwnTracking_heroes, new Lazy(() => {
         const x_1 = ofSeq_2(map((tuple) => tuple[0], toSeq(filter_2((k, v) => v.Owned, state.HeroesOwned))), {
             Compare: (x, y) => comparePrimitives(x, y),
         });
         toConsole(printf("Evaluated owned"));
         return x_1;
-    });
-    h = Array.from(map((hero) => OwnTracking_renderHeroView(dispatch, state.HeroesOwned, hero), sortBy((x_2) => [x_2.Rarity !== "Legendary", x_2.Rarity !== "Epic", x_2.Rarity !== "Rare", x_2.Name], OwnTracking_applyFilter(OwnTracking_heroes, owned, state.Filter), {
+    }), state.Filter), {
         Compare: (x_3, y_1) => compareArrays(x_3, y_1),
     })));
     return createElement("div", {
         children: Interop_reactApi.Children.toArray(Array.from(toList(delay(() => {
             const makeFilterSet = (field, values) => map_2((tupledArg) => {
                 const v_1 = tupledArg[0];
-                const img = tupledArg[1];
-                return [v_1, img, new Msg(3, field, v_1)];
+                return [v_1, tupledArg[1], new Msg(3, field, v_1)];
             }, values);
             return append_1(singleton_1(OwnTracking_renderFilterBar(toList(delay(() => append_1(makeFilterSet("Alignment", ofArray([["Order", null], ["Nature", null], ["Chaos", null]])), delay(() => append_1(makeFilterSet("Rarity", ofArray([["Legendary", null], ["Epic", null], ["Rare", null]])), delay(() => makeFilterSet("Owned", singleton(["Owned", null])))))))), dispatch)), delay(() => h));
         })))),
