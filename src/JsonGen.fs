@@ -5,11 +5,23 @@ open Feliz
 
 open BHelpers
 
+type GenType =
+    | ``F#``
+    | ``C#``
+    with
+        static member All =
+            [
+                ``F#``
+                ``C#``
+            ]
 type State = {
     Text:string
+    GenType: GenType
 }
 
-type Msg = Textchange of string
+type Msg =
+    | TextChange of string
+    | TypeChange of GenType
 
 module Reflection =
     open Fable.Core.JS
@@ -21,6 +33,7 @@ module Reflection =
         | Obj of obj * string[]
         | Str of string
         | Num of float
+
     let getKeyValue (o:obj) k =
         let value = App.JsHelpers.Object.getItem k o
         // printfn "Value of %s[%A] = %s" k value <| JsSerialization.serialize value
@@ -48,6 +61,38 @@ module Reflection =
                     (x, Constructors.Object.keys(x) |> Seq.toArray)
                     |> Obj
             |> Some
+
+    let generateCs(x): string=
+        let rec gen (x:MappedType): string=
+            match x with
+            | Arr items ->
+                items |> Seq.tryHead
+                |> function
+                    | Some h ->
+                        getType h
+                        |> Option.map gen
+                        |> Option.map (sprintf "%s[]")
+                        |> Option.defaultValue "obj[]"
+                    | None -> "obj[]"
+            | Obj (o,keys) ->
+                keys
+                |> Seq.map(fun k ->
+                    let kt = getKeyValue o k
+                    let value : obj = App.JsHelpers.Object.getItem k o
+                    printfn "Value of %s[%A] = %s" k value <| JsSerialization.serialize value
+                    let kt = getType value
+                    printfn "Found prop %s has type %A" k kt
+                    kt
+                    |> Option.map gen
+                    |> Option.map (sprintf "%s: %s" k)
+                    |> Option.defaultValue (sprintf "%s:obj" k)
+                )
+                |> String.concat "\r\n"
+                |> sprintf "{ %s }"
+            | Num _ -> "float"
+            | Str _ -> "string"
+
+        gen x
 
     let generateFs(x): string=
         let rec gen (x:MappedType): string=
@@ -129,25 +174,36 @@ module Reflection =
             |Str _ -> {TypeName = "string";Name=name; Types=List.empty}
         fun x -> gen "Foo" x
 
-    let rec mapResult {Name=name;TypeName=_self;Types=t} =
+    let rec mapResultFs {Name=name;TypeName=_self;Types=t} =
         match t with
         | [] -> ""
         | _ ->
             [
-                yield! t |> List.map mapResult
+                yield! t |> List.map mapResultFs
                 yield sprintf "type %s = {" name
                 yield t |> List.map(fun x -> sprintf "\t%s: %s" x.Name x.TypeName) |> String.concat "\r\n"
                 yield "}"
             ]
             |> String.concat "\r\n"
-
+    let rec mapResultCs  {Name=name;TypeName=_self;Types=t} =
+        match t with
+        | [] -> ""
+        | _ ->
+            [
+                yield! t |> List.map mapResultFs
+                yield sprintf "puclic record %s {" name
+                yield t |> List.map(fun x -> sprintf "\tpublic %s %s" x.TypeName x.Name) |> String.concat "\r\n"
+                yield "}"
+            ]
+            |> String.concat "\r\n"
 
 let init(): State * Cmd<Msg> =
-    { Text = null }, Cmd.none
+    { Text = null; GenType=``F#``}, Cmd.none
 
 let update msg state =
     match msg with
-    | Textchange x -> {state with Text = x}, Cmd.none
+    | TextChange x -> {state with Text = x}, Cmd.none
+    | TypeChange x -> {state with GenType = x}, Cmd.none
 
 open App.JsHelpers.JsSerialization
 let generate text =
@@ -174,6 +230,29 @@ let view state dispatch =
     Html.div[
         prop.children [
             Html.h1 "Json Jen"
+            // Html.nav [
+            //     Html.div [
+            //         prop.className "nav-start"
+            //         prop.children[
+            //             Html.select [
+            //                 prop.value (string state.GenType)
+            //                 // prop.onSelect(fun (e:Browser.Types.Event) -> Msg.TypeChange ``C#`` |> dispatch)
+            //                 prop.children (
+            //                     GenType.All
+            //                     |> List.map(fun x ->
+            //                         let s = string x
+            //                         Html.option [
+            //                             prop.value s
+            //                             prop.text s
+            //                             prop.selected (state.GenType = x)
+            //                         ]
+            //                     )
+            //                 )
+
+            //             ]
+            //         ]
+            //     ]
+            // ]
             Html.div [
                 prop.children [
                     Html.textarea[
@@ -182,19 +261,23 @@ let view state dispatch =
                             style.minHeight 100
                             style.minWidth 200
                         ]
-                        prop.onChange (Msg.Textchange >> dispatch)
+                        // prop.onChange (Msg.TextChange >> dispatch)
                     ]
                     let oOpt =
                         match state.Text with
                         | ValueString x -> generate x
                         | _ -> Ok null
+                    // let f =
+                    //     match state.GenType with
+                    //     | ``F#`` -> Reflection.mapResultFs
+                    //     | ``C#`` -> Reflection.mapResultCs
                     generateView (
                         Reflection.generateFs2
                         >> fun x ->
                             serialize x
                             |> printfn "Generated as %s"
                             x
-                        >>Reflection.mapResult) oOpt
+                        >> Reflection.mapResultFs) oOpt
                     Html.br []
                     generateView Reflection.generateFs oOpt
                 ]

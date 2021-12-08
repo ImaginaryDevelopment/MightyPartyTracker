@@ -122,8 +122,8 @@ module OwnTracking =
                 | Some bth when bth.Owned ->
                     let cls,text =
                             if sb.ReqLvl <= bth.Level then
-                                "has-text-warning",name
-                            else "has-text-success", sprintf "%s %i" name (bth.Level - sb.ReqLvl)
+                                "has-text-success",name
+                            else "has-text-warning", sprintf "%s %i" name (bth.Level - sb.ReqLvl)
                     Html.li [
                         prop.style [ style.display.inlineElement]
                         prop.text text
@@ -206,8 +206,8 @@ module OwnTracking =
                         prop.ariaValueMin 0
                     ]
                     yield Html.span [
-                        prop.text "For Next"
                         prop.children [
+                            Html.text "For Next"
                             Html.ul [
                                 prop.style [ style.display.inlineElement]
                                 prop.children sbs

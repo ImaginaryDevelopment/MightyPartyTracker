@@ -43,8 +43,8 @@ module JsSerialization =
         try
             JSON.parse(x) :?> 't
         with ex ->
-        #if DEBUG
-            failwithf "Failed to deserialize: %s ('%s') from '%s'" typeof<'t>.Name ex.Message x
-        #else
+        // #if DEBUG
+        //     failwithf "Failed to deserialize: %s ('%s') from '%s'" typeof<'t>.Name ex.Message x
+        // #else
             failwithf "Failed to deserialize: '%s' from '%s'" ex.Message x
-        #endif
+        // #endif

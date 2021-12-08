@@ -89,32 +89,45 @@ export function Msg$reflection() {
 
 export function init(serializer) {
     const patternInput = OwnTracking_init(serializer);
-    const cmd_2 = Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), patternInput[2]);
+    const props = patternInput[0];
+    const ots = patternInput[1];
+    const cmd = patternInput[2];
+    const cmd_2 = Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd);
     const patternInput_1 = init_1();
-    return [new State(new ChildState([patternInput[0], patternInput[1]], patternInput_1[0]), new ChildPage(0), null, null), append(cmd_2, Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), patternInput_1[1]))];
+    const jstate = patternInput_1[0];
+    const jcmd = patternInput_1[1];
+    const jcmd_1 = Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), jcmd);
+    const cmd_4 = append(cmd_2, jcmd_1);
+    const state = new State(new ChildState([props, ots], jstate), new ChildPage(0), null, null);
+    return [state, cmd_4];
 }
 
 export function runImport(text) {
     return singleton.Delay(() => singleton.TryWith(singleton.Delay(() => {
-        let x;
-        return singleton.Return(new FSharpResult$2(0, (x = text, (() => {
-            try {
-                return JSON.parse(x);
-            }
-            catch (ex) {
-                const arg10 = ex.message;
-                return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x);
-            }
-        })())));
-    }), (_arg1) => singleton.Return(new FSharpResult$2(1, _arg1.message))));
+        let value;
+        const x = text;
+        try {
+            value = JSON.parse(x);
+        }
+        catch (ex) {
+            const arg10 = ex.message;
+            value = toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x);
+        }
+        return singleton.Return(new FSharpResult$2(0, value));
+    }), (_arg1) => {
+        const ex_1 = _arg1;
+        return singleton.Return(new FSharpResult$2(1, ex_1.message));
+    }));
 }
 
 export function update(msg, state) {
     if (msg.tag === 1) {
-        return [new State(state.ChildState, msg.fields[0], state.ImportText, state.Error), Cmd_none()];
+        const x = msg.fields[0];
+        return [new State(state.ChildState, x, state.ImportText, state.Error), Cmd_none()];
     }
     else if (msg.tag === 2) {
-        return [new State(state.ChildState, state.ChildPage, msg.fields[0], state.Error), Cmd_none()];
+        const x_1 = msg.fields[0];
+        return [new State(state.ChildState, state.ChildPage, x_1, state.Error), Cmd_none()];
     }
     else if (msg.tag === 3) {
         return [new State(state.ChildState, state.ChildPage, null, state.Error), Cmd_OfAsyncWith_perform((x_2) => {
@@ -123,21 +136,29 @@ export function update(msg, state) {
     }
     else if (msg.tag === 4) {
         if (msg.fields[0].tag === 1) {
-            return [new State(state.ChildState, state.ChildPage, state.ImportText, msg.fields[0].fields[0]), Cmd_none()];
+            const msg_3 = msg.fields[0].fields[0];
+            return [new State(state.ChildState, state.ChildPage, state.ImportText, msg_3), Cmd_none()];
         }
         else {
-            return [msg.fields[0].fields[0], Cmd_none()];
+            const next_2 = msg.fields[0].fields[0];
+            return [next_2, Cmd_none()];
         }
     }
     else if (msg.fields[0].tag === 1) {
-        const patternInput_1 = update_1(msg.fields[0].fields[0], state.ChildState.JsonJenData);
-        return [new State(new ChildState(state.ChildState.OwnershipTrackerData, patternInput_1[0]), state.ChildPage, state.ImportText, state.Error), Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), patternInput_1[1])];
+        const msg_2 = msg.fields[0].fields[0];
+        const patternInput_1 = update_1(msg_2, state.ChildState.JsonJenData);
+        const next_1 = patternInput_1[0];
+        const cmd_2 = patternInput_1[1];
+        return [new State(new ChildState(state.ChildState.OwnershipTrackerData, next_1), state.ChildPage, state.ImportText, state.Error), Cmd_map((arg_1) => (new Msg(0, new ChildMsg(1, arg_1))), cmd_2)];
     }
     else {
+        const msg_1 = msg.fields[0].fields[0];
         let patternInput;
         const tupledArg = state.ChildState.OwnershipTrackerData;
-        patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg.fields[0].fields[0]);
-        return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], patternInput[0]], state.ChildState.JsonJenData), state.ChildPage, state.ImportText, state.Error), Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), patternInput[1])];
+        patternInput = OwnTracking_update(tupledArg[0], tupledArg[1], msg_1);
+        const next = patternInput[0];
+        const cmd = patternInput[1];
+        return [new State(new ChildState([state.ChildState.OwnershipTrackerData[0], next], state.ChildState.JsonJenData), state.ChildPage, state.ImportText, state.Error), Cmd_map((arg) => (new Msg(0, new ChildMsg(0, arg))), cmd)];
     }
 }
 
@@ -188,20 +209,22 @@ export function renderImportExport(state, dispatch) {
 export function render(state, dispatch) {
     let children_2;
     const children_4 = ofArray([renderNav(dispatch), (children_2 = toList(delay(() => {
-        let activePatternResult11427, e;
-        return append_1((activePatternResult11427 = $007CValueString$007C_$007C(state.Error), (activePatternResult11427 != null) ? ((e = activePatternResult11427, singleton_1(createElement("span", {
+        let activePatternResult11481, e;
+        return append_1((activePatternResult11481 = $007CValueString$007C_$007C(state.Error), (activePatternResult11481 != null) ? ((e = activePatternResult11481, singleton_1(createElement("span", {
             className: "is-red",
             children: e,
         })))) : ((empty()))), delay(() => {
             const matchValue_1 = state.ChildPage;
             switch (matchValue_1.tag) {
                 case 1: {
-                    return singleton_1(view(state.ChildState.JsonJenData, (arg_3) => {
+                    const v = view(state.ChildState.JsonJenData, (arg_3) => {
                         dispatch(new Msg(0, new ChildMsg(1, arg_3)));
-                    }));
+                    });
+                    return singleton_1(v);
                 }
                 case 2: {
-                    return singleton_1(renderImportExport(state, dispatch));
+                    const v_1 = renderImportExport(state, dispatch);
+                    return singleton_1(v_1);
                 }
                 default: {
                     let lis;
