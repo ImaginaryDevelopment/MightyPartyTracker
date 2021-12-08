@@ -3,6 +3,7 @@ namespace App.MightyParty.Components.OwnershipTracker
 open Fable.Import
 
 open App.MightyParty.Schema
+open BHelpers
 
 type OwnershipDatum = TrackedHero
 
@@ -13,11 +14,13 @@ type Props = {
 
 type State = {
     HeroesOwned: App.MightyParty.Schema.TrackedHeroCollection
+    Filter: string list
 }
 
 type Msg =
     | OwnedClicked of int
     | BindLevelChange of int * int
+    | FilterChange of string * string
 
 module OwnTracking =
     open Elmish
@@ -71,6 +74,7 @@ module OwnTracking =
         }
         let state = {
             HeroesOwned = owned
+            Filter = List.empty
         }
         props,state,Cmd.none
 
@@ -86,6 +90,19 @@ module OwnTracking =
                     {o with BindLevel = v}
                 )
             { state with HeroesOwned = nextOwned}, Cmd.none
+        | FilterChange(k,v) ->
+            let filterValue = sprintf "%s-%s" k v
+            let filter =
+                if state.Filter |> List.contains filterValue then
+                    state.Filter |> List.except [ filterValue ]
+                else
+                    state.Filter
+                    |> List.filter(
+                        function
+                        |Before "-" (StartsWith k) -> false
+                        | _ -> true)
+                    |> List.append [ filterValue ]
+            {state with Filter = filter}, Cmd.none
 
     let renderSoulbinds sb binds =
         let sbs =
@@ -111,6 +128,7 @@ module OwnTracking =
                     prop.text (sprintf "%s" name)]
             )
         sbs
+
     let renderHeroView dispatch heroesOwned hero =
         let hbi = getHeroBindInfo hero heroesOwned
         let isOwned = hbi |> Option.map(fun x -> x.TrackedHero.Owned) |> Option.defaultValue false
@@ -172,10 +190,82 @@ module OwnTracking =
                 | _ -> ()
             ]
         ]
-    let view (_,state:State) dispatch =
-        heroes
-        |> Seq.sortBy(fun x -> x.Rarity <> "Legendary", x.Name)
-        |> Seq.map(fun hero ->
-            renderHeroView dispatch state.HeroesOwned hero
+    let applyFilter(heroes:Hero[]) filters =
+        let (|Filter|_|) =
+            function
+            | Before "-" f & After "-" v -> Some (f,v)
+            | _ -> None
+        (heroes,filters)
+        ||> Seq.fold(fun heroes ->
+            function
+            | Filter ("Alignment",a) ->
+            // | Before "-" "Alignment" & After"-" a ->
+                heroes
+                |> Array.filter(fun h -> h.Alignment = a)
+            | Filter("Rarity", r) ->
+                heroes
+                |> Array.filter(fun h -> h.Rarity = r)
+            | Filter(n,v) ->
+                eprintfn "No Filter found for %s - %s" n v
+                heroes
+            | x ->
+                let fName = match x with | Before "-" v -> Some v | _ -> None
+                let fValue = match x with | After "-" v -> Some v | _ -> None
+                eprintfn "Unrecognized filter '%A' - '%A' " fName fValue
+                heroes
         )
-        |> Array.ofSeq
+
+    let renderFilterBar items dispatch =
+        Html.nav[
+            prop.className "navbar"
+            prop.children [
+                Html.div [
+                    prop.className "navbar-start"
+                    prop.children (
+                        items
+                        |> Seq.map(fun (text:string,_img:string,msg:Msg) ->
+                            Html.div [
+                                prop.className "navbar-item"
+                                prop.children [
+                                    Html.button [
+                                        prop.text text
+                                        prop.onClick (fun _ -> msg |> dispatch)
+                                    ]
+                                ]
+                            ]
+                        )
+                        |> List.ofSeq
+                    )
+                ]
+            ]
+        ]
+
+    let view (_,state:State) dispatch =
+        let h =
+            applyFilter heroes state.Filter
+            |> Seq.sortBy(fun x -> x.Rarity <> "Legendary", x.Rarity <> "Epic", x.Rarity <> "Rare", x.Name)
+            |> Seq.map(fun hero ->
+                renderHeroView dispatch state.HeroesOwned hero
+            )
+            |> Array.ofSeq
+        Html.div[
+            prop.children[
+                let makeFilterSet field values=
+                    values
+                    |> List.map(fun (v,img) ->
+                        v, img, Msg.FilterChange(field,v)
+                    )
+                yield renderFilterBar [
+                        yield! makeFilterSet "Alignment" [
+                            "Order", null
+                            "Nature", null
+                            "Chaos", null
+                        ]
+                        yield! makeFilterSet "Rarity" [
+                            "Legendary", null
+                            "Epic", null
+                        ]
+                    ] dispatch
+                yield! h
+            ]
+        ]

@@ -148,7 +148,7 @@ let render (state: State) (dispatch: Msg -> unit) =
             | ChildPage.OwnTracker ->
                 let lis = App.MightyParty.Components.OwnershipTracker.OwnTracking.view state.ChildState.OwnershipTrackerData (ChildMsg.OwnershipTracker >> Msg.ChildMsg >> dispatch)
                 yield Html.ul [
-                    yield! lis
+                    lis
                 ]
             | ChildPage.JsonJen ->
                 let v = App.JsonGen.view state.ChildState.JsonJenData (ChildMsg.JsonJenMsg >> Msg.ChildMsg >> dispatch)

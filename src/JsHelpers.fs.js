@@ -16,8 +16,8 @@ export function makeStorageProp(key, serializer, deserializer) {
     return [() => {
         let x;
         const matchValue = localStorage[key];
-        const activePatternResult11041 = $007CValueString$007C_$007C(matchValue);
-        return (activePatternResult11041 != null) ? ((x = activePatternResult11041, some(deserializer(x)))) : (void 0);
+        const activePatternResult11057 = $007CValueString$007C_$007C(matchValue);
+        return (activePatternResult11057 != null) ? ((x = activePatternResult11057, some(deserializer(x)))) : (void 0);
     }, (key_2 = key, (value) => {
         if (value != null) {
             localStorage.setItem(key_2, serializer(value_1(value)));

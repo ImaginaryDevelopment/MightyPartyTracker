@@ -188,12 +188,11 @@ export function renderImportExport(state, dispatch) {
 export function render(state, dispatch) {
     let children_2;
     const children_4 = ofArray([renderNav(dispatch), (children_2 = toList(delay(() => {
-        let activePatternResult11358, e;
-        return append_1((activePatternResult11358 = $007CValueString$007C_$007C(state.Error), (activePatternResult11358 != null) ? ((e = activePatternResult11358, singleton_1(createElement("span", {
+        let activePatternResult11416, e;
+        return append_1((activePatternResult11416 = $007CValueString$007C_$007C(state.Error), (activePatternResult11416 != null) ? ((e = activePatternResult11416, singleton_1(createElement("span", {
             className: "is-red",
             children: e,
         })))) : ((empty()))), delay(() => {
-            let children;
             const matchValue_1 = state.ChildPage;
             switch (matchValue_1.tag) {
                 case 1: {
@@ -210,9 +209,9 @@ export function render(state, dispatch) {
                     lis = OwnTracking_view(tupledArg[0], tupledArg[1], (arg_1) => {
                         dispatch(new Msg(0, new ChildMsg(0, arg_1)));
                     });
-                    return singleton_1((children = toList(delay(() => lis)), createElement("ul", {
-                        children: Interop_reactApi.Children.toArray(Array.from(children)),
-                    })));
+                    return singleton_1(createElement("ul", {
+                        children: Interop_reactApi.Children.toArray([lis]),
+                    }));
                 }
             }
         }));
