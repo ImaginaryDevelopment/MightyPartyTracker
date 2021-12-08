@@ -218,8 +218,8 @@ export function view(state, dispatch) {
                     dispatch(new Msg(0, ev.target.value));
                 },
             })), delay(() => {
-                let activePatternResult33449, x;
-                const oOpt = (activePatternResult33449 = $007CValueString$007C_$007C(state.Text), (activePatternResult33449 != null) ? ((x = activePatternResult33449, generate(x))) : (new FSharpResult$2(0, null)));
+                let activePatternResult11171, x;
+                const oOpt = (activePatternResult11171 = $007CValueString$007C_$007C(state.Text), (activePatternResult11171 != null) ? ((x = activePatternResult11171, generate(x))) : (new FSharpResult$2(0, null)));
                 return append(singleton(generateView((arg_2) => {
                     let x_1, arg10;
                     return Reflection_mapResult((x_1 = Reflection_generateFs2(arg_2), ((arg10 = JSON.stringify(x_1, uncurry(2, null), some(2)), toConsole(printf("Generated as %s"))(arg10)), x_1)));

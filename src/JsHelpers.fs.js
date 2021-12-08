@@ -14,9 +14,9 @@ export function Object_getItem(name, x) {
 export function makeStorageProp(key, serializer, deserializer) {
     const getLocal = (deserializer_1, key_1) => {
         const matchValue = localStorage[key_1];
-        const activePatternResult28169 = $007CValueString$007C_$007C(matchValue);
-        if (activePatternResult28169 != null) {
-            const x = activePatternResult28169;
+        const activePatternResult11051 = $007CValueString$007C_$007C(matchValue);
+        if (activePatternResult11051 != null) {
+            const x = activePatternResult11051;
             return some(deserializer_1(x));
         }
         else {

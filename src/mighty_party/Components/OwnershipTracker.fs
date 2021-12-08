@@ -124,6 +124,9 @@ module OwnTracking =
                 //     let img = sprintf "http%s" hero.Image.[5..]
                 //     prop.src img
                 // ]
+                yield Html.img [
+                    prop.src (sprintf "images/%i.png" hero.ID)
+                ]
                 yield Html.span [
                     prop.onClick (fun _ -> dispatch (OwnedClicked hero.ID))
                     prop.children[

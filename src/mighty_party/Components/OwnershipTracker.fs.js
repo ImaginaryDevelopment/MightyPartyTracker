@@ -206,7 +206,9 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
     return createElement("li", {
         ["data-owned"]: toString(isOwned),
         key: hero.ID,
-        children: Interop_reactApi.Children.toArray(Array.from(toList(delay(() => append(singleton(createElement("span", {
+        children: Interop_reactApi.Children.toArray(Array.from(toList(delay(() => append(singleton(createElement("img", {
+            src: toText(printf("images/%i.png"))(hero.ID),
+        })), delay(() => append(singleton(createElement("span", {
             onClick: (_arg1) => {
                 dispatch(new Msg(0, hero.ID));
             },
@@ -269,7 +271,7 @@ export function OwnTracking_renderHeroView(dispatch, heroesOwned, hero) {
                     return empty();
                 }
             }
-        })))))),
+        })))))))),
     });
 }
 

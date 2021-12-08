@@ -23,9 +23,9 @@ export function $007CValueString$007C_$007C(_arg1) {
 }
 
 export function pascal(_arg1) {
-    const activePatternResult25823 = $007CValueString$007C_$007C(_arg1);
-    if (activePatternResult25823 != null) {
-        const x = activePatternResult25823;
+    const activePatternResult10986 = $007CValueString$007C_$007C(_arg1);
+    if (activePatternResult10986 != null) {
+        const x = activePatternResult10986;
         const arg00 = toArray(reverse(fold(uncurry(2, (tupledArg) => {
             const v = tupledArg[0];
             const foundLetter = tupledArg[1];
