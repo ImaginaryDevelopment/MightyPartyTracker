@@ -23,6 +23,7 @@ type State = {
     ChildState: ChildState
     ChildPage: ChildPage
     ImportText: string
+    HamActive: bool
     Error: string
 }
 
@@ -36,6 +37,7 @@ type Msg =
     | ImportTextChange of string
     | ImportClick
     | Imported of Result<State,string>
+    | HamClick
 
 let init(serializer) =
     let props,ots,cmd = App.MightyParty.Components.OwnershipTracker.OwnTracking.init serializer
@@ -46,6 +48,7 @@ let init(serializer) =
     let state = {
         ChildPage = ChildPage.OwnTracker
         ImportText = null
+        HamActive = false
         Error = null
         ChildState = {
             OwnershipTrackerData = props,ots
@@ -87,8 +90,31 @@ let update (msg: Msg) (state: State): State * Cmd<Msg> =
         next, Cmd.none
     | Imported (Error msg) ->
         {state with Error = msg}, Cmd.none
+    | HamClick ->
+        {state with HamActive = not state.HamActive}, Cmd.none
 
-let renderNav dispatch =
+let renderBrandBurger active dispatch =
+    Html.div [
+        prop.className "navbar-brand"
+        prop.children [
+            Html.text "MightyParty Tracker"
+            Html.a [
+                prop.role "button"
+                prop.classes ["navbar-burger"; if active then "is-active" ]
+                prop.ariaLabel "menu"
+                prop.ariaExpanded false
+                // prop.custom("data-target", target)
+                prop.onClick (fun _ -> Msg.HamClick |> dispatch)
+                prop.children [
+                    Html.span [ prop.ariaHidden true]
+                    Html.span [ prop.ariaHidden true]
+                    Html.span [ prop.ariaHidden true]
+                ]
+            ]
+        ]
+    ]
+
+let renderNav hamActive dispatch =
     let navItem (text:string) pg =
         Html.a [
             prop.className "navbar-item"
@@ -97,9 +123,13 @@ let renderNav dispatch =
         ]
     Html.nav [
         prop.className "navbar"
+        prop.role "navigation"
+        prop.ariaLabel "main navigation"
         prop.children [
+            renderBrandBurger hamActive dispatch
             Html.div [
-                prop.className "navbar-menu"
+                prop.classes ["navbar-menu"; if hamActive then "is-active"]
+
                 prop.children [
                     Html.div [
                         prop.className "navbar-start"
@@ -110,6 +140,9 @@ let renderNav dispatch =
                         ]
                     ]
                 ]
+            ]
+            Html.div [
+                prop.className "navbar-end"
             ]
         ]
     ]
@@ -135,7 +168,7 @@ let renderImportExport (state:State) dispatch =
 
 let render (state: State) (dispatch: Msg -> unit) =
     Html.div [
-        renderNav dispatch
+        renderNav state.HamActive dispatch
         Html.div [
             match state.Error with
             | ValueString e ->

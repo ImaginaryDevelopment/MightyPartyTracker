@@ -6,20 +6,17 @@ import { uncurry } from "./fable_modules/fable-library.3.6.3/Util.js";
 import { isLetter } from "./fable_modules/fable-library.3.6.3/Char.js";
 
 export function $007CValueString$007C_$007C(_arg1) {
-    let x;
     if (_arg1 === null) {
         return void 0;
     }
     else if (_arg1 === "") {
         return void 0;
     }
-    else if ((x = _arg1, isNullOrWhiteSpace(x))) {
-        const x_1 = _arg1;
+    else if (isNullOrWhiteSpace(_arg1)) {
         return void 0;
     }
     else {
-        const x_2 = _arg1;
-        return x_2;
+        return _arg1;
     }
 }
 
@@ -28,19 +25,11 @@ export function $007CAfter$007C_$007C(delimiter) {
         toFail(printf("%s: Bad %s"))("After")("delimiter");
     }
     return (_arg1) => {
-        let i;
-        const activePatternResult10987 = $007CValueString$007C_$007C(_arg1);
-        if (activePatternResult10987 != null) {
-            const x_1 = activePatternResult10987;
+        const activePatternResult10977 = $007CValueString$007C_$007C(_arg1);
+        if (activePatternResult10977 != null) {
+            const x_1 = activePatternResult10977;
             const matchValue = x_1.indexOf(delimiter) | 0;
-            if ((i = (matchValue | 0), i < 0)) {
-                const i_1 = matchValue | 0;
-                return void 0;
-            }
-            else {
-                const i_2 = matchValue | 0;
-                return x_1.slice(i_2 + delimiter.length, x_1.length);
-            }
+            return (matchValue < 0) ? (void 0) : x_1.slice(matchValue + delimiter.length, x_1.length);
         }
         else {
             return void 0;
@@ -53,19 +42,11 @@ export function $007CBefore$007C_$007C(delimiter) {
         toFail(printf("%s: Bad %s"))("Before")("delimiter");
     }
     return (_arg1) => {
-        let i;
-        const activePatternResult10991 = $007CValueString$007C_$007C(_arg1);
-        if (activePatternResult10991 != null) {
-            const x_1 = activePatternResult10991;
+        const activePatternResult10981 = $007CValueString$007C_$007C(_arg1);
+        if (activePatternResult10981 != null) {
+            const x_1 = activePatternResult10981;
             const matchValue = x_1.indexOf(delimiter) | 0;
-            if ((i = (matchValue | 0), i < 0)) {
-                const i_1 = matchValue | 0;
-                return void 0;
-            }
-            else {
-                const i_2 = matchValue | 0;
-                return x_1.slice(0, (i_2 - 1) + 1);
-            }
+            return (matchValue < 0) ? (void 0) : x_1.slice(0, (matchValue - 1) + 1);
         }
         else {
             return void 0;
@@ -78,25 +59,23 @@ export function $007CStartsWith$007C_$007C(delimiter) {
         toFail(printf("%s: Bad %s"))("StartsWith")("delimiter");
     }
     return (_arg1) => {
-        let activePatternResult10994, x_1;
-        return (activePatternResult10994 = $007CValueString$007C_$007C(_arg1), (activePatternResult10994 != null) ? ((x_1 = activePatternResult10994, (x_1.indexOf(delimiter) === 0) ? some(void 0) : (void 0))) : (void 0));
+        let activePatternResult10984, x_1;
+        return (activePatternResult10984 = $007CValueString$007C_$007C(_arg1), (activePatternResult10984 != null) ? ((x_1 = activePatternResult10984, (x_1.indexOf(delimiter) === 0) ? some(void 0) : (void 0))) : (void 0));
     };
 }
 
 export function pascal(_arg1) {
-    const activePatternResult11000 = $007CValueString$007C_$007C(_arg1);
-    if (activePatternResult11000 != null) {
-        const x = activePatternResult11000;
+    const activePatternResult10990 = $007CValueString$007C_$007C(_arg1);
+    if (activePatternResult10990 != null) {
+        const x = activePatternResult10990;
         const arg00 = toArray(reverse(fold(uncurry(2, (tupledArg) => {
             const v = tupledArg[0];
-            const foundLetter = tupledArg[1];
-            return (c) => (foundLetter ? [cons(c, v), true] : (isLetter(c) ? [cons(c.toLocaleUpperCase(), v), true] : [cons(c, v), false]));
+            return (c) => (tupledArg[1] ? [cons(c, v), true] : (isLetter(c) ? [cons(c.toLocaleUpperCase(), v), true] : [cons(c, v), false]));
         }), [empty(), false], x.split(""))[0]));
         return arg00.join('');
     }
     else {
-        const x_1 = _arg1;
-        return x_1;
+        return _arg1;
     }
 }
 

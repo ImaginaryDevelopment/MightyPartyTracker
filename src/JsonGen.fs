@@ -128,9 +128,7 @@ module Reflection =
             | Str _ -> "string"
 
         gen x
-    // type TType =
-    //     |O of (string*string) list
-    //     |Other of string
+
     type GenResult = {
         Name: string
         Types: GenResult list
@@ -230,29 +228,29 @@ let view state dispatch =
     Html.div[
         prop.children [
             Html.h1 "Json Jen"
-            // Html.nav [
-            //     Html.div [
-            //         prop.className "nav-start"
-            //         prop.children[
-            //             Html.select [
-            //                 prop.value (string state.GenType)
-            //                 // prop.onSelect(fun (e:Browser.Types.Event) -> Msg.TypeChange ``C#`` |> dispatch)
-            //                 prop.children (
-            //                     GenType.All
-            //                     |> List.map(fun x ->
-            //                         let s = string x
-            //                         Html.option [
-            //                             prop.value s
-            //                             prop.text s
-            //                             prop.selected (state.GenType = x)
-            //                         ]
-            //                     )
-            //                 )
+            Html.nav [
+                Html.div [
+                    prop.className "nav-start"
+                    prop.children[
+                        Html.select [
+                            prop.value (string state.GenType)
+                            // prop.onSelect(fun (e:Browser.Types.Event) -> Msg.TypeChange ``C#`` |> dispatch)
+                            prop.children (
+                                GenType.All
+                                |> List.map(fun x ->
+                                    let s = string x
+                                    Html.option [
+                                        prop.value s
+                                        prop.text s
+                                        prop.selected (state.GenType = x)
+                                    ]
+                                )
+                            )
 
-            //             ]
-            //         ]
-            //     ]
-            // ]
+                        ]
+                    ]
+                ]
+            ]
             Html.div [
                 prop.children [
                     Html.textarea[
@@ -261,16 +259,16 @@ let view state dispatch =
                             style.minHeight 100
                             style.minWidth 200
                         ]
-                        // prop.onChange (Msg.TextChange >> dispatch)
+                        prop.onChange (Msg.TextChange >> dispatch)
                     ]
                     let oOpt =
                         match state.Text with
                         | ValueString x -> generate x
                         | _ -> Ok null
-                    // let f =
-                    //     match state.GenType with
-                    //     | ``F#`` -> Reflection.mapResultFs
-                    //     | ``C#`` -> Reflection.mapResultCs
+                    let f =
+                        match state.GenType with
+                        | ``F#`` -> Reflection.mapResultFs
+                        | ``C#`` -> Reflection.mapResultCs
                     generateView (
                         Reflection.generateFs2
                         >> fun x ->
