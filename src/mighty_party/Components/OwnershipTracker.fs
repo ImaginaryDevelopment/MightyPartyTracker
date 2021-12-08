@@ -11,10 +11,23 @@ type Props = {
     GetOwned: unit -> App.MightyParty.Schema.TrackedHeroCollection
     SetOwned: App.MightyParty.Schema.TrackedHeroCollection option -> unit
 }
+[<RequireQualifiedAccess>]
+type ViewMode =
+    | Ul
+    | Card
+    | Tile
+    with
+        static member All =
+            [
+                Ul
+                Card
+                Tile
+            ]
 
 type State = {
     HeroesOwned: App.MightyParty.Schema.TrackedHeroCollection
     Filter: string list
+    ViewMode: ViewMode
 }
 
 type Msg =
@@ -22,6 +35,7 @@ type Msg =
     | BindLevelChange of int * int
     | LevelChange of int * int
     | FilterChange of string * string
+    | ViewChange of ViewMode
 
 module OwnTracking =
     open Elmish
@@ -78,6 +92,7 @@ module OwnTracking =
         let state = {
             HeroesOwned = owned
             Filter = List.empty
+            ViewMode = ViewMode.Ul
         }
         props,state,Cmd.none
 
@@ -112,6 +127,8 @@ module OwnTracking =
                         | _ -> true)
                     |> List.append [ filterValue ]
             {state with Filter = filter}, Cmd.none
+        | ViewChange x ->
+            {state with ViewMode = x}, Cmd.none
 
     let renderSoulbinds sb binds =
         let sbs =
@@ -148,7 +165,7 @@ module OwnTracking =
             )
         sbs
 
-    let renderHeroView dispatch heroesOwned hero =
+    let renderHeroLIView dispatch heroesOwned hero =
         let hbi = getHeroBindInfo hero heroesOwned
         let isOwned = hbi |> Option.map(fun x -> x.TrackedHero.Owned) |> Option.defaultValue false
 
@@ -156,11 +173,6 @@ module OwnTracking =
             prop.custom("data-owned", string isOwned)
             prop.key hero.ID
             prop.children [
-                // not sure if this a referrer or http/https or some other issue
-                // Html.img [
-                //     let img = sprintf "http%s" hero.Image.[5..]
-                //     prop.src img
-                // ]
                 yield Html.img [
                     prop.src (sprintf "images/%i.png" hero.ID)
                 ]
@@ -272,37 +284,178 @@ module OwnTracking =
             ]
         ]
 
-    let view (_,state:State) dispatch =
-        let h =
-            let owned = lazy(state.HeroesOwned |> Map.filter(fun k v -> v.Owned) |> Map.toSeq |> Seq.map fst |> Set.ofSeq |> fun x -> printfn "Evaluated owned"; x)
-            applyFilter heroes owned state.Filter
-            |> Seq.sortBy(fun x -> x.Rarity <> "Legendary", x.Rarity <> "Epic", x.Rarity <> "Rare", x.Name)
-            |> Seq.map(fun hero ->
-                renderHeroView dispatch state.HeroesOwned hero
+    let renderFilterView dispatch =
+        let makeFilterSet field values=
+            values
+            |> List.map(fun (v,img) ->
+                v, img, Msg.FilterChange(field,v)
             )
+        renderFilterBar [
+                yield! makeFilterSet "Alignment" [
+                    "Order", null
+                    "Nature", null
+                    "Chaos", null
+                ]
+                yield! makeFilterSet "Rarity" [
+                    "Legendary", null
+                    "Epic", null
+                    "Rare", null
+                ]
+                yield! makeFilterSet "Owned" [
+                    "Owned", null
+                ]
+            ] dispatch
+
+    let getSortedOwned heroesOwned filter =
+            let owned = lazy(heroesOwned|> Map.filter(fun k v -> v.Owned) |> Map.toSeq |> Seq.map fst |> Set.ofSeq |> fun x -> printfn "Evaluated owned"; x)
+            applyFilter heroes owned filter
+            |> Seq.sortBy(fun x -> x.Rarity <> "Legendary", x.Rarity <> "Epic", x.Rarity <> "Rare", x.Name)
             |> Array.ofSeq
+
+    let renderCardView (heroes:Hero[]) dispatch =
+        // let h =
+        //     getSortedOwned state.HeroesOwned state.Filter
+        Html.div[
+            prop.children (
+                heroes
+                |> Array.map(fun h ->
+                    Html.div [
+                        prop.className "card"
+                        prop.children[
+                            Html.div[
+                                prop.className "card-image"
+                                prop.children[
+                                    Html.figure [
+                                        // prop.className "image"
+                                        prop.children [
+                                            Html.img [
+                                                prop.src (sprintf "images/%i.png" h.ID)
+                                                prop.alt h.Name
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                            Html.div[
+                                prop.className "card-content"
+                                prop.children[
+                                    Html.div [
+                                        prop.className "media-content"
+                                        prop.children [
+                                            Html.p [
+                                                prop.classes ["title";"is-4"]
+                                                prop.text h.Name
+                                            ]
+                                            Html.p [
+                                                prop.classes ["subtitle"; "is-6"]
+                                                prop.text h.ID
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                            Html.div[
+                                prop.className "content"
+                                prop.children [
+
+                                ]
+                            ]
+                        ]
+                    ]
+                )
+
+            )
+
+        ]
+    let renderTileView ownership (heroes:Hero seq) dispatch =
+        let tiles =
+            prop.children (
+                heroes
+                |> Seq.map(fun h ->
+                    Html.div[
+                        prop.className "tile is-parent is-4 is-vertical"
+                        prop.children[
+                            Html.article[
+                                prop.className "tile is-child notification is-info box"
+                                prop.children[
+                                    Html.p[
+                                        prop.className "title"
+                                        prop.text h.Name
+                                    ]
+                                    Html.p[
+                                        prop.className "subtitle"
+                                        prop.text h.ID
+                                    ]
+                                    Html.figure [
+                                        prop.className "image"
+                                        prop.style [
+                                            style.maxWidth 80
+                                            style.maxHeight 105
+                                        ]
+                                        prop.children [
+                                            Html.img [
+                                                prop.src (sprintf "images/%i.png" h.ID)
+
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+
+                        ]
+                    ]
+                )
+                |> Array.ofSeq
+            )
+        Html.div [
+            prop.className "tile is-ancestor"
+            prop.children [
+                Html.div [
+                    prop.className "tile"
+                    tiles
+
+                ]
+            ]
+        ]
+    let renderViewSelector (viewmode:ViewMode) dispatch =
+        Html.div [
+            prop.children [
+                Html.select [
+                    prop.value (string viewmode)
+                    // prop.onSelect(fun (e:Browser.Types.Event) -> Msg.TypeChange ``C#`` |> dispatch)
+                    prop.onChange(fun (value:string) ->
+                        ViewMode.All
+                        |> List.tryFind(fun x -> string x = value)
+                        |> Option.iter (Msg.ViewChange >> dispatch)
+                    )
+                    prop.children (
+                        ViewMode.All
+                        |> List.map(fun x ->
+                            Html.option [
+                                prop.value (string x)
+                                prop.text (string x)
+                                prop.selected ((x = viewmode))
+
+                        ])
+                    )
+                ]
+            ]
+        ]
+    let view (_,state:State) dispatch =
+        // let h =
+        //     getSortedOwned state.HeroesOwned state.Filter
+        //     |> Array.map(renderHeroView dispatch state.HeroesOwned)
+        let ht = getSortedOwned state.HeroesOwned state.Filter
         Html.div[
             prop.children[
-                let makeFilterSet field values=
-                    values
-                    |> List.map(fun (v,img) ->
-                        v, img, Msg.FilterChange(field,v)
-                    )
-                yield renderFilterBar [
-                        yield! makeFilterSet "Alignment" [
-                            "Order", null
-                            "Nature", null
-                            "Chaos", null
-                        ]
-                        yield! makeFilterSet "Rarity" [
-                            "Legendary", null
-                            "Epic", null
-                            "Rare", null
-                        ]
-                        yield! makeFilterSet "Owned" [
-                            "Owned", null
-                        ]
-                    ] dispatch
-                yield! h
+                yield renderFilterView dispatch
+                yield renderViewSelector state.ViewMode dispatch
+                // yield! h
+                match state.ViewMode with
+                | ViewMode.Tile ->
+                    yield renderTileView state.HeroesOwned ht dispatch
+                | ViewMode.Card -> yield renderCardView ht dispatch
+                | _ -> yield! ht |> Array.map(renderHeroLIView dispatch state.HeroesOwned)
+
             ]
         ]
