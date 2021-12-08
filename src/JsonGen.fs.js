@@ -54,17 +54,16 @@ export function Reflection_MappedType$reflection() {
 }
 
 export function Reflection_getKeyValue(o, k) {
-    const value = Object_getItem(k, o);
-    return value;
+    return Object_getItem(k, o);
 }
 
 export function Reflection_getType(x) {
-    let s, i, f, tupledArg;
+    let tupledArg;
     if (equals(x, null)) {
         return void 0;
     }
     else {
-        return Array.isArray(x) ? (new Reflection_MappedType(0, x)) : (equals(x, string_type) ? (new Reflection_MappedType(2, x)) : (((typeof x) === "string") ? ((s = x, new Reflection_MappedType(2, s))) : (((typeof x) === "number") ? ((i = x, new Reflection_MappedType(3, i))) : (((typeof x) === "number") ? ((f = x, new Reflection_MappedType(3, f))) : ((tupledArg = [x, toArray(Object.keys(x))], new Reflection_MappedType(1, tupledArg[0], tupledArg[1])))))));
+        return Array.isArray(x) ? (new Reflection_MappedType(0, x)) : (equals(x, string_type) ? (new Reflection_MappedType(2, x)) : (((typeof x) === "string") ? (new Reflection_MappedType(2, x)) : (((typeof x) === "number") ? (new Reflection_MappedType(3, x)) : (((typeof x) === "number") ? (new Reflection_MappedType(3, x)) : ((tupledArg = [x, toArray(Object.keys(x))], new Reflection_MappedType(1, tupledArg[0], tupledArg[1])))))));
     }
 }
 
@@ -97,14 +96,12 @@ export function Reflection_generateFs(x) {
                 return "string";
             }
             default: {
-                const items = x_1.fields[0];
-                const _arg1 = tryHead(items);
+                const _arg1 = tryHead(x_1.fields[0]);
                 if (_arg1 == null) {
                     return "obj[]";
                 }
                 else {
-                    const h = value_11(_arg1);
-                    return defaultArg((option_1 = map_1(gen, Reflection_getType(h)), map_1((clo1_1 = toText(printf("%s[]")), (arg10_1) => clo1_1(arg10_1)), option_1)), "obj[]");
+                    return defaultArg((option_1 = map_1(gen, Reflection_getType(value_11(_arg1))), map_1((clo1_1 = toText(printf("%s[]")), (arg10_1) => clo1_1(arg10_1)), option_1)), "obj[]");
                 }
             }
         }
@@ -129,15 +126,12 @@ export const Reflection_generateFs2 = (() => {
     const gen = (name, x) => {
         switch (x.tag) {
             case 1: {
-                const o = x.fields[0];
-                const keys = x.fields[1];
                 toConsole(printf("Object %s"))(name);
-                const t = ofSeq(map((k) => {
+                return new Reflection_GenResult(name, ofSeq(map((k) => {
                     let option_4;
                     const value_1 = new Reflection_GenResult(k, empty(), "obj");
-                    return defaultArg((option_4 = bind((x_3) => Reflection_getType(x_3), Reflection_getKeyValue(o, k)), map_1(partialApply(1, gen, [k]), option_4)), value_1);
-                }, keys));
-                return new Reflection_GenResult(name, t, pascal(name));
+                    return defaultArg((option_4 = bind((x_3) => Reflection_getType(x_3), Reflection_getKeyValue(x.fields[0], k)), map_1(partialApply(1, gen, [k]), option_4)), value_1);
+                }, x.fields[1])), pascal(name));
             }
             case 3: {
                 return new Reflection_GenResult(name, empty(), "float");
@@ -146,13 +140,12 @@ export const Reflection_generateFs2 = (() => {
                 return new Reflection_GenResult(name, empty(), "string");
             }
             default: {
-                const items = x.fields[0];
                 toConsole(printf("Arr:%s"))(name);
                 const value = new Reflection_GenResult(name, empty(), "obj[]");
                 return defaultArg(map_1((arg) => {
                     const x_2 = gen(name, arg);
                     return new Reflection_GenResult(x_2.Name, x_2.Types, toText(printf("%s[]"))(x_2.TypeName));
-                }, bind((x_1) => Reflection_getType(x_1), tryHead(items))), value);
+                }, bind((x_1) => Reflection_getType(x_1), tryHead(x.fields[0]))), value);
             }
         }
     };
@@ -161,13 +154,11 @@ export const Reflection_generateFs2 = (() => {
 
 export function Reflection_mapResult(_arg1) {
     const t = _arg1.Types;
-    const name = _arg1.Name;
-    const _self = _arg1.TypeName;
     if (isEmpty(t)) {
         return "";
     }
     else {
-        return join("\r\n", toList(delay(() => append(map_2((arg00$0040) => Reflection_mapResult(arg00$0040), t), delay(() => append(singleton(toText(printf("type %s = {"))(name)), delay(() => append(singleton(join("\r\n", map_2((x) => toText(printf("\t%s: %s"))(x.Name)(x.TypeName), t))), delay(() => singleton("}"))))))))));
+        return join("\r\n", toList(delay(() => append(map_2((arg00$0040) => Reflection_mapResult(arg00$0040), t), delay(() => append(singleton(toText(printf("type %s = {"))(_arg1.Name)), delay(() => append(singleton(join("\r\n", map_2((x) => toText(printf("\t%s: %s"))(x.Name)(x.TypeName), t))), delay(() => singleton("}"))))))))));
     }
 }
 
@@ -176,8 +167,7 @@ export function init() {
 }
 
 export function update(msg, state) {
-    const x = msg.fields[0];
-    return [new State(x), Cmd_none()];
+    return [new State(msg.fields[0]), Cmd_none()];
 }
 
 export function generate(text) {
@@ -188,8 +178,8 @@ export function generate(text) {
                 return JSON.parse(x);
             }
             catch (ex) {
-                const arg20 = ex.message;
-                return toFail(printf("Failed to deserialize: %s (\u0027%s\u0027) from \u0027%s\u0027"))("Object")(arg20)(x);
+                const arg10 = ex.message;
+                return toFail(printf("Failed to deserialize: \u0027%s\u0027 from \u0027%s\u0027"))(arg10)(x);
             }
         })()));
     }
@@ -199,8 +189,8 @@ export function generate(text) {
 }
 
 export function generateView(f, oOpt) {
-    let _arg1, msg, x;
-    return createElement("pre", createObj(singleton_1((_arg1 = oOpt, (_arg1.tag === 1) ? ((msg = _arg1.fields[0], ["children", msg])) : (equals(_arg1.fields[0], null) ? ["children", null] : ((x = _arg1.fields[0], ["children", defaultArg(map_1(f, Reflection_getType(x)), "?")])))))));
+    let _arg1;
+    return createElement("pre", createObj(singleton_1((_arg1 = oOpt, (_arg1.tag === 1) ? ["children", _arg1.fields[0]] : (equals(_arg1.fields[0], null) ? ["children", null] : ["children", defaultArg(map_1(f, Reflection_getType(_arg1.fields[0])), "?")])))));
 }
 
 export function view(state, dispatch) {
@@ -218,8 +208,8 @@ export function view(state, dispatch) {
                     dispatch(new Msg(0, ev.target.value));
                 },
             })), delay(() => {
-                let activePatternResult11171, x;
-                const oOpt = (activePatternResult11171 = $007CValueString$007C_$007C(state.Text), (activePatternResult11171 != null) ? ((x = activePatternResult11171, generate(x))) : (new FSharpResult$2(0, null)));
+                let activePatternResult11160, x;
+                const oOpt = (activePatternResult11160 = $007CValueString$007C_$007C(state.Text), (activePatternResult11160 != null) ? ((x = activePatternResult11160, generate(x))) : (new FSharpResult$2(0, null)));
                 return append(singleton(generateView((arg_2) => {
                     let x_1, arg10;
                     return Reflection_mapResult((x_1 = Reflection_generateFs2(arg_2), ((arg10 = JSON.stringify(x_1, uncurry(2, null), some(2)), toConsole(printf("Generated as %s"))(arg10)), x_1)));

@@ -24,13 +24,12 @@ export function Components_HelloWorld() {
 
 export function Components_Counter() {
     const patternInput = useFeliz_React__React_useState_Static_1505(0);
-    const setCount = patternInput[1];
     const count = patternInput[0] | 0;
     const children = ofArray([createElement("h1", {
         children: [count],
     }), createElement("button", {
         onClick: (_arg1) => {
-            setCount(count + 1);
+            patternInput[1](count + 1);
         },
         children: "Increment",
     })]);
@@ -41,22 +40,18 @@ export function Components_Counter() {
 
 export function Components_Router() {
     const patternInput = useFeliz_React__React_useState_Static_1505(RouterModule_urlSegments(window.location.hash, 1));
-    const updateUrl = patternInput[1];
     const currentUrl = patternInput[0];
     return RouterModule_router({
-        onUrlChanged: updateUrl,
-        application: react.createElement(react.Fragment, {}, ...toList(delay(() => {
-            let otherwise;
-            return (!isEmpty(currentUrl)) ? ((head(currentUrl) === "hello") ? (isEmpty(tail(currentUrl)) ? singleton(createElement(Components_HelloWorld, null)) : ((otherwise = currentUrl, singleton(createElement("h1", {
-                children: ["Not found"],
-            }))))) : ((head(currentUrl) === "counter") ? (isEmpty(tail(currentUrl)) ? singleton(createElement(Components_Counter, null)) : ((otherwise = currentUrl, singleton(createElement("h1", {
-                children: ["Not found"],
-            }))))) : ((otherwise = currentUrl, singleton(createElement("h1", {
-                children: ["Not found"],
-            })))))) : singleton(createElement("h1", {
-                children: ["Index1"],
-            }));
-        }))),
+        onUrlChanged: patternInput[1],
+        application: react.createElement(react.Fragment, {}, ...toList(delay(() => ((!isEmpty(currentUrl)) ? ((head(currentUrl) === "hello") ? (isEmpty(tail(currentUrl)) ? singleton(createElement(Components_HelloWorld, null)) : singleton(createElement("h1", {
+            children: ["Not found"],
+        }))) : ((head(currentUrl) === "counter") ? (isEmpty(tail(currentUrl)) ? singleton(createElement(Components_Counter, null)) : singleton(createElement("h1", {
+            children: ["Not found"],
+        }))) : singleton(createElement("h1", {
+            children: ["Not found"],
+        })))) : singleton(createElement("h1", {
+            children: ["Index1"],
+        })))))),
     });
 }
 
