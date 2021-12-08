@@ -188,8 +188,8 @@ export function renderImportExport(state, dispatch) {
 export function render(state, dispatch) {
     let children_2;
     const children_4 = ofArray([renderNav(dispatch), (children_2 = toList(delay(() => {
-        let activePatternResult11416, e;
-        return append_1((activePatternResult11416 = $007CValueString$007C_$007C(state.Error), (activePatternResult11416 != null) ? ((e = activePatternResult11416, singleton_1(createElement("span", {
+        let activePatternResult11427, e;
+        return append_1((activePatternResult11427 = $007CValueString$007C_$007C(state.Error), (activePatternResult11427 != null) ? ((e = activePatternResult11427, singleton_1(createElement("span", {
             className: "is-red",
             children: e,
         })))) : ((empty()))), delay(() => {
